@@ -3,6 +3,7 @@
 页面实际引用 `images/` 中的 PNG 文件，保持文件名不变即可直接替换：
 
 - `background.jpg`：全页背景，1600 × 900，已按网页加载场景压缩。
+- `background-diffuse.jpg`：当前弥散渐变背景，1600 × 900，中心低对比并针对首页文字和卡片留白。
 - `avatar-assistant-v2.png`：智能助手默认头像，192 × 192 透明 PNG，可直接同名替换。
 - `avatar-assistant-police.png`：当前警务智能助手头像，256 × 256 透明 PNG；页面使用独立光晕样式，无外框。
 - `avatar-user-v2.png`：用户默认头像，192 × 192 透明 PNG，可直接同名替换。
