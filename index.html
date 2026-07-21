@@ -183,7 +183,6 @@
     .rule-param-head strong { font-size: 10px; }
     .rule-param-head span { color: #777d7f; font-size: 8px; }
     .rule-param-fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
-    .rule-param-fields.frequency-grid { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 10px; }
 
     .loading { padding: 18px 0; display: flex; align-items: center; gap: 10px; color: #6f7577; font-size: 10px; }
     .typing { display: flex; gap: 4px; }
@@ -464,12 +463,12 @@
   <script>
     const features = [
       {id:1,name:'救助对象',brief:'识别属于已配置救助对象类型的人员',rule:'救助对象类型支持添加、修改名称和删除。',range:'按救助对象类型多选，无数值阈值',fields:[{label:'救助对象类型',type:'select',options:['全部已配置类型','特困人员','低保对象','低保边缘家庭成员','刚性支出困难家庭大病患者','本地户籍临时救助对象中的大病患者']}]},
-      {id:2,name:'多机构跨院开药',brief:'识别单月内多次购药且去往多家医院的人员',rule:'规则1：单月购药次数和单月内开药去往医院数量均可调整。',range:'单月购药次数 ≥ 可调值；医院数量 ≥ 可调值',fields:[{label:'单月购药次数 ≥',value:2,min:1,max:20,unit:'次'},{label:'医院数量 ≥',value:2,min:1,max:10,unit:'家'}]},
+      {id:2,name:'多机构跨院开药',brief:'识别单月内开药去往多家医院且达到频次阈值的人员',rule:'规则1：单月开药所去往医院数量 ≥ 2 家，频率 ≥ 2。',range:'医院数量与频率均可调整',fields:[{label:'医院数量 ≥',value:2,min:1,max:10,unit:'家'},{label:'频率 ≥',value:2,min:1,max:20,unit:'次'}]},
       {id:3,name:'涉案关联人员',brief:'识别已知嫌疑人及其社交、资金等关联对象',rule:'来源于涉案嫌疑人及其群聊、好友、资金关系等研判结果。',range:'关联层级建议 1–3 层，或按关系类型选择',fields:[{label:'关联层级',value:2,min:1,max:3,unit:'层'},{label:'关联类型',type:'select',options:['全部关系','资金关系','社交关系','案件关系']}]},
-      {id:4,name:'开药不符合临床逻辑',brief:'识别血液透析与尿毒清或海昆肾喜胶囊同时出现的人员',rule:'只要出现任一组合即命中，不计算出现次数。',range:'血液透析 + 尿毒清；血液透析 + 海昆肾喜胶囊',fields:[{label:'临床冲突组合',type:'select',options:['全部组合','血液透析 + 尿毒清','血液透析 + 海昆肾喜胶囊']}]},
-      {id:5,name:'高频次购药',brief:'识别单月开药次数和单次开药月药量达到阈值的人员',rule:'规则2：单月开药次数、单次开具的月药量均可调整。',range:'单月开药次数 ≥ 可调值；单次月药量 ≥ 可调值',fields:[{label:'单月开药次数 ≥',value:2,min:1,max:20,unit:'次'},{label:'单次月药量 ≥',value:1,min:1,max:12,unit:'月'}]},
-      {id:6,name:'开药总量异常',brief:'识别总购药量达到设置阈值的人员',rule:'规则3：总购药量 ≥ 可调值；原始数据单位不统一。',range:'不展示单位，可能对应盒、颗或袋',fields:[{label:'总购药量 ≥',value:50,min:1,max:999,unit:''}]},
-      {id:7,name:'多种类购药',brief:'识别开药种类达到设置阈值的人员',rule:'规则4：开药种类 ≥ 可调值。',range:'开药种类数量可调整',fields:[{label:'开药种类 ≥',value:8,min:1,max:50,unit:'种'}]}
+      {id:4,name:'开药不符合临床逻辑',brief:'识别不合逻辑用药组合达到次数和频率阈值的人员',rule:'规则5：开药不合逻辑次数 ≥ 1 次，频率 ≥ 1。',range:'临床冲突组合、次数和频率均可调整',fields:[{label:'临床冲突组合',type:'select',options:['全部组合','血液透析 + 尿毒清','血液透析 + 海昆肾喜胶囊']},{label:'不合逻辑次数 ≥',value:1,min:1,max:20,unit:'次'},{label:'频率 ≥',value:1,min:1,max:20,unit:'次'}]},
+      {id:5,name:'高频次购药',brief:'识别单月开药次数及现象频率达到阈值的人员',rule:'规则2：单月开药次数 ≥ 2，频率 ≥ 7。',range:'单月开药次数与频率均可调整',fields:[{label:'单月开药次数 ≥',value:2,min:1,max:20,unit:'次'},{label:'频率 ≥',value:7,min:1,max:30,unit:'次'}]},
+      {id:6,name:'开药总量异常',brief:'识别总购药量及现象频率达到阈值的人员',rule:'规则3：总购药量 ＞ 50 件，频率 ≥ 2。',range:'总购药量与频率均可调整',fields:[{label:'总购药量 ＞',value:50,min:1,max:999,unit:'件'},{label:'频率 ≥',value:2,min:1,max:20,unit:'次'}]},
+      {id:7,name:'多种类购药',brief:'识别开药种类及现象频率达到阈值的人员',rule:'规则4：开药种类 ＞ 8 种，频率 ≥ 1。',range:'开药种类与频率均可调整',fields:[{label:'开药种类 ＞',value:8,min:1,max:50,unit:'种'},{label:'频率 ≥',value:1,min:1,max:20,unit:'次'}]}
     ];
     const people = [
       ['周启明','JS-2026-0713','1,2,4,5,6,7',6,'跨院开药频繁，总量与种类同时异常'],
@@ -504,20 +503,24 @@
     document.querySelector('#send').onclick=submit;document.querySelector('#prompt').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submit()}};document.querySelector('#reset').onclick=()=>{reset();toast('已恢复默认演示状态')};document.querySelector('#guide').onclick=()=>toast('可输入单一风险名称直接筛查，也可输入“复合风险”或“核心风险”');document.querySelectorAll('.suggestion').forEach(b=>b.onclick=()=>act(b.dataset.action));reset();
   </script>
   <script>
-    const renderParameterHtmlBase = parameterHtml;
     parameterHtml = function () {
-      const originalRule5 = `<div class="rule-param"><div class="rule-param-head"><strong>规则5 · 现象出现频次</strong><span>统一作用于规则1–4</span></div><div class="rule-param-fields"><div class="field"><label>出现频次 ≥</label><input type="number" value="2" min="1"><small>单位：次</small></div></div></div>`;
-      const rule5And6 = `<div class="rule-param"><div class="rule-param-head"><strong>规则5 · 开药不符合临床逻辑</strong><span>独立配置异常出现次数</span></div><div class="rule-param-fields"><div class="field"><label>不符合临床逻辑次数 ≥</label><input type="number" value="1" min="1" max="12"><small>建议 1–12 次</small></div></div></div><div class="rule-param"><div class="rule-param-head"><strong>规则6 · 现象出现频次</strong><span>分别配置规则1–5</span></div><div class="rule-param-fields frequency-grid"><div class="field"><label>规则1 · 跨院购药频次 ≥</label><input type="number" value="2" min="1" max="12"><small>建议 1–12 次</small></div><div class="field"><label>规则2 · 高频购药频次 ≥</label><input type="number" value="2" min="1" max="12"><small>建议 1–12 次</small></div><div class="field"><label>规则3 · 总计购药频次 ≥</label><input type="number" value="2" min="1" max="12"><small>建议 1–12 次</small></div><div class="field"><label>规则4 · 多种类购药频次 ≥</label><input type="number" value="2" min="1" max="12"><small>建议 1–12 次</small></div><div class="field"><label>规则5 · 不合逻辑频次 ≥</label><input type="number" value="1" min="1" max="12"><small>建议 1–12 次</small></div></div></div>`;
-      return renderParameterHtmlBase()
-        .replace(originalRule5, rule5And6)
-        .replace('“开药不符合临床逻辑”已归入规则4，任一组合出现一次即命中；规则5频次不作用于该临床逻辑条件。', '规则4维护不符合临床逻辑的药品组合；规则5配置不合逻辑现象的命中次数；规则6分别配置规则1–5的现象出现频次。');
+      const clinicalRows = state.clinicalConditions.map((name,i)=>`<div class="dict-row"><input class="dict-name" value="${name}" disabled data-clinical-input="${i}"><span class="dict-actions"><button class="text-btn" data-edit-clinical="${i}">修改名称</button><button class="text-btn danger" data-delete-clinical="${i}">删除</button></span></div>`).join('');
+      return `<div class="rule-param-list">
+        <div class="rule-param"><div class="rule-param-head"><strong>规则1 · 跨院购药</strong><span>两项可调参数</span></div><div class="rule-param-fields"><div class="field"><label>医院数量 ≥</label><input type="number" value="2" min="1" max="10"><small>单位：家</small></div><div class="field"><label>频率 ≥</label><input type="number" value="2" min="1" max="20"><small>单位：次</small></div></div></div>
+        <div class="rule-param"><div class="rule-param-head"><strong>规则2 · 高频购药</strong><span>两项可调参数</span></div><div class="rule-param-fields"><div class="field"><label>单月开药次数 ≥</label><input type="number" value="2" min="1" max="20"><small>单位：次</small></div><div class="field"><label>频率 ≥</label><input type="number" value="7" min="1" max="30"><small>单位：次</small></div></div></div>
+        <div class="rule-param"><div class="rule-param-head"><strong>规则3 · 总计购药</strong><span>两项可调参数</span></div><div class="rule-param-fields"><div class="field"><label>总购药量 ＞</label><input type="number" value="50" min="1" max="999"><small>单位：件</small></div><div class="field"><label>频率 ≥</label><input type="number" value="2" min="1" max="20"><small>单位：次</small></div></div></div>
+        <div class="rule-param"><div class="rule-param-head"><strong>规则4 · 多种类购药</strong><span>两项可调参数</span></div><div class="rule-param-fields"><div class="field"><label>开药种类 ＞</label><input type="number" value="8" min="1" max="50"><small>单位：种</small></div><div class="field"><label>频率 ≥</label><input type="number" value="1" min="1" max="20"><small>单位：次</small></div></div></div>
+        <div class="rule-param"><div class="rule-param-head"><strong>规则5 · 开药不符合临床逻辑</strong><span>次数、频率及组合可调</span></div><div class="rule-param-fields"><div class="field"><label>不合逻辑次数 ≥</label><input type="number" value="1" min="1" max="20"><small>单位：次</small></div><div class="field"><label>频率 ≥</label><input type="number" value="1" min="1" max="20"><small>单位：次</small></div></div><div style="margin-top:12px;padding-top:12px;border-top:1px solid #e1e8f0"><div class="rule-param-head" style="margin-bottom:8px"><strong>不符合临床逻辑组合</strong><span>支持添加、修改名称、删除</span></div><div class="dict-block" style="margin-bottom:0"><div class="dict-list">${clinicalRows}</div><div class="add-row"><input placeholder="输入新增临床逻辑组合" data-add-clinical-input><button class="btn" data-add-clinical>添加</button></div></div></div></div>
+        <div class="notice">规则1–5分别配置各自的业务阈值与频率；规则5中的任一临床逻辑组合达到设定次数和频率后命中。</div>
+        <div class="action-row"><span class="helper">原型参数调整仅影响本次演示</span><button class="btn primary" data-save-rules>保存规则参数</button></div>
+      </div>`;
     };
     const renderShowConfigBase = showConfig;
     showConfig = function (withUser = true) {
       renderShowConfigBase(withUser);
       const currentMessage = conversation.lastElementChild;
       const intro = currentMessage && currentMessage.querySelector('.bubble > p');
-      if (intro) intro.textContent = '可以。你可以维护救助对象类型、监管药品类目，并调整规则1–6的参数。';
+      if (intro) intro.textContent = '可以。你可以维护救助对象类型、监管药品类目，并调整规则1–5的参数。';
     };
   </script>
 </body>
