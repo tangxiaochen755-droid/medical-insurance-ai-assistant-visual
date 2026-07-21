@@ -7,7 +7,7 @@
 - `avatar-assistant-v2.png`：智能助手默认头像，192 × 192 透明 PNG，可直接同名替换。
 - `avatar-assistant-police.png`：当前警务智能助手头像，256 × 256 透明 PNG；页面使用独立光晕样式，无外框。
 - `avatar-user-v2.png`：用户默认头像，192 × 192 透明 PNG，可直接同名替换。
-- `logo.png`：顶部品牌标识，建议正方形透明 PNG。
+- `logo.png`：当前政企科技品牌标识，192 × 192 透明 PNG；页面显示为 38 × 38，可直接同名替换。
 - `icon-risk.png`：风险特征入口图标。
 - `icon-config.png`：调整规则参数入口图标。
 - `icon-composite.png`：组合风险筛查入口图标。

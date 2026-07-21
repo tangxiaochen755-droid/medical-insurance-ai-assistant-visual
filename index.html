@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>医保药品倒卖线索发现 AI 智能助手</title>
+  <link rel="stylesheet" href="result-export.css">
   <style>
     :root {
       --bg: #f4f5f6;
@@ -252,7 +253,7 @@
     }
     .topbar { height: 64px; padding: 0 30px; background: rgba(250,252,255,.9); border-color: rgba(164,185,211,.38); }
     .title-wrap h1 { font-size: 16px; line-height: 24px; font-weight: 650; letter-spacing: -.015em; }
-    .brand-image { width: 34px; height: 34px; object-fit: contain; outline: 1px solid rgba(0,0,0,.1); outline-offset: -1px; border-radius: 9px; }
+    .brand-image { width: 38px; height: 38px; object-fit: contain; filter: drop-shadow(0 4px 7px rgba(29,89,171,.14)); }
     .prototype-tag { border-color: #ccd9e8; color: #617089; background: #f6f9fd; font-size: 10px; letter-spacing: .02em; }
     .icon-btn { min-height: 40px; padding: 0 14px; border: 0; border-radius: 9px; background: rgba(251,253,255,.88); color: #526178; box-shadow: 0 0 0 1px rgba(29,64,105,.12), 0 2px 5px rgba(31,75,127,.05); font-size: 12px; letter-spacing: .01em; transition-property: transform, background-color, box-shadow, color; transition-duration: 180ms; transition-timing-function: cubic-bezier(.2,0,0,1); }
     .icon-btn:hover { background: #fff; color: #1f66ca; box-shadow: 0 0 0 1px rgba(39,119,236,.2), 0 5px 12px rgba(35,89,153,.08); }
@@ -565,7 +566,7 @@
   <div class="app">
     <main class="main">
       <header class="topbar">
-        <div class="title-wrap"><img class="brand-image" src="assets/images/logo.png" alt=""><h1>医保药品倒卖线索发现 AI 智能助手</h1><span class="prototype-tag">视觉版</span></div>
+        <div class="title-wrap"><img class="brand-image" src="assets/images/logo.png?v=2" alt=""><h1>医保药品倒卖线索发现 AI 智能助手</h1><span class="prototype-tag">视觉版</span></div>
         <div class="top-actions"><button class="icon-btn" id="reset"><svg viewBox="0 0 24 24"><path d="M4 7v5h5M5.5 11A7 7 0 1 1 7 17"/></svg>复位演示</button><button class="icon-btn" id="guide"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.6 2.6 0 0 1 5 .8c0 2.2-2.5 2.2-2.5 4M12 17.5h.01"/></svg>使用说明</button></div>
       </header>
 
@@ -581,7 +582,7 @@
     const features = [
       {id:1,name:'救助对象',brief:'识别属于已配置救助对象类型的人员',rule:'救助对象类型支持添加、修改名称和删除。',range:'按救助对象类型多选，无数值阈值',fields:[{label:'救助对象类型',type:'select',options:['全部已配置类型','特困人员','低保对象','低保边缘家庭成员','刚性支出困难家庭大病患者','本地户籍临时救助对象中的大病患者']}]},
       {id:2,name:'多机构跨院开药',brief:'识别单月内开药去往多家医院且达到频次阈值的人员',rule:'规则1：单月开药所去往医院数量 ≥ 2 家，频率 ≥ 2。',range:'医院数量与频率均可调整',fields:[{label:'医院数量 ≥',value:2,min:1,max:10,unit:'家'},{label:'频率 ≥',value:2,min:1,max:20,unit:'次'}]},
-      {id:3,name:'涉案关联人员',brief:'识别已知嫌疑人及其社交、资金等关联对象',rule:'来源于涉案嫌疑人及其群聊、好友、资金关系等研判结果。',range:'关联层级建议 1–3 层，或按关系类型选择',fields:[{label:'关联层级',value:2,min:1,max:3,unit:'层'},{label:'关联类型',type:'select',options:['全部关系','资金关系','社交关系','案件关系']}]},
+      {id:3,name:'涉案关联人员',brief:'识别已知嫌疑人及其关联人员',rule:'来源于涉案嫌疑人及其群聊、好友、资金关系等研判结果。',range:'关联层级建议 1–3 层，或按关系类型选择',fields:[{label:'关联层级',value:2,min:1,max:3,unit:'层'},{label:'关联类型',type:'select',options:['全部关系','资金关系','社交关系','案件关系']}]},
       {id:4,name:'开药不符合临床逻辑',brief:'识别不合逻辑用药组合达到次数和频率阈值的人员',rule:'规则5：开药不合逻辑次数 ≥ 1 次，频率 ≥ 1。',range:'临床冲突组合、次数和频率均可调整',fields:[{label:'临床冲突组合',type:'select',options:['全部组合','血液透析 + 尿毒清','血液透析 + 海昆肾喜胶囊']},{label:'不合逻辑次数 ≥',value:1,min:1,max:20,unit:'次'},{label:'频率 ≥',value:1,min:1,max:20,unit:'次'}]},
       {id:5,name:'高频次购药',brief:'识别单月开药次数及现象频率达到阈值的人员',rule:'规则2：单月开药次数 ≥ 2，频率 ≥ 7。',range:'单月开药次数与频率均可调整',fields:[{label:'单月开药次数 ≥',value:2,min:1,max:20,unit:'次'},{label:'频率 ≥',value:7,min:1,max:30,unit:'次'}]},
       {id:6,name:'开药总量异常',brief:'识别总购药量及现象频率达到阈值的人员',rule:'规则3：总购药量 ＞ 50 件，频率 ≥ 2。',range:'总购药量与频率均可调整',fields:[{label:'总购药量 ＞',value:50,min:1,max:999,unit:'件'},{label:'频率 ≥',value:2,min:1,max:20,unit:'次'}]},
@@ -651,5 +652,6 @@
     };
     enhanceWelcomeAgent();
   </script>
+  <script src="result-export.js"></script>
 </body>
 </html>

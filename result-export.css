@@ -1,0 +1,82 @@
+.result-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 46px;
+  margin: 16px 0 14px;
+}
+.result-tools .result-count { flex: 0 0 auto; padding-left: 2px; }
+.result-tools-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.result-tools-actions .btn { min-height: 38px; }
+.btn .btn-icon { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.btn.ghost-primary { color: #216acb; box-shadow: inset 0 0 0 1px #bdd5f3; background: #f7fbff; }
+.btn.ghost-primary:hover { background: #edf6ff; }
+
+.data-dialog-layer { position: fixed; z-index: 80; inset: 0; display: grid; place-items: center; padding: 32px; background: rgba(18,31,48,.34); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+.data-dialog-layer.open { opacity: 1; pointer-events: auto; }
+.data-dialog { width: min(1180px, calc(100vw - 64px)); height: min(780px, calc(100vh - 64px)); display: grid; grid-template-rows: auto auto minmax(0,1fr) auto; background: #fff; border-radius: 16px; box-shadow: 0 24px 70px rgba(17,43,76,.22); overflow: hidden; transform: translateY(10px) scale(.99); transition: transform .22s cubic-bezier(.2,0,0,1); }
+.data-dialog-layer.open .data-dialog { transform: none; }
+.data-dialog-head { min-height: 68px; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid #dfe7f0; background: linear-gradient(180deg,#fbfdff,#f5f8fc); }
+.data-dialog-title { min-width: 0; }
+.data-dialog-title strong { display: block; color: #19314f; font-size: 17px; line-height: 24px; }
+.data-dialog-title span { display: block; margin-top: 3px; color: #7b899b; font-size: 11px; }
+.dialog-close { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 9px; background: #eef3f8; color: #596a80; font-size: 22px; line-height: 1; }
+.dialog-close:hover { background: #e3ebf4; }
+.data-dialog-summary { padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #e4ebf3; background: #fff; }
+.data-dialog-summary .condition-tags { margin-top: 0; }
+.server-page-note { flex: 0 0 auto; color: #718096; font-size: 11px; }
+.server-page-note b { color: #276fcf; }
+.all-data-table-wrap { min-height: 0; overflow: auto; padding: 0 20px; background: #fff; }
+.all-data-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+.all-data-table th { position: sticky; z-index: 2; top: 0; height: 42px; padding: 0 12px; text-align: left; background: #f4f7fb; color: #66768a; font-size: 11px; font-weight: 650; border-bottom: 1px solid #dfe7f0; }
+.all-data-table td { min-height: 48px; padding: 9px 12px; color: #34465d; font-size: 11px; line-height: 1.55; border-bottom: 1px solid #edf1f5; vertical-align: middle; }
+.all-data-table tbody tr:hover td { background: #f8fbff; }
+.all-data-table th:nth-child(1), .all-data-table td:nth-child(1) { width: 80px; }
+.all-data-table th:nth-child(2), .all-data-table td:nth-child(2) { width: 190px; }
+.all-data-table th:nth-child(3), .all-data-table td:nth-child(3) { width: 120px; }
+.all-data-table .condition-tags { margin-top: 0; gap: 4px; }
+.all-data-table .tag { min-height: 22px; line-height: 22px; }
+.data-dialog-foot { min-height: 64px; padding: 11px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid #dfe7f0; background: #fafcff; }
+.page-summary { color: #6f7e92; font-size: 11px; }
+.pagination { display: flex; align-items: center; gap: 8px; }
+.pagination .btn { min-width: 72px; }
+.page-index { min-width: 96px; text-align: center; color: #3c5069; font-size: 11px; font-variant-numeric: tabular-nums; }
+.page-size { height: 40px; padding: 0 28px 0 12px; border: 1px solid #d3dfec; border-radius: 8px; background: #fff; color: #50637a; font-size: 11px; }
+
+.export-dialog { width: min(720px, calc(100vw - 64px)); height: auto; min-height: 540px; grid-template-rows: auto minmax(0,1fr) auto; }
+.export-content { padding: 20px; overflow: auto; }
+.export-status { padding: 16px; display: flex; align-items: center; gap: 14px; border-radius: 11px; background: #f2f7fd; box-shadow: inset 0 0 0 1px #dce8f5; }
+.export-spinner { width: 30px; height: 30px; border: 3px solid #c8dcf6; border-top-color: #2878ec; border-radius: 50%; animation: export-spin .8s linear infinite; }
+.export-status.complete .export-spinner { display: grid; place-items: center; border: 0; background: #e5f6ef; color: #238861; animation: none; }
+.export-status.complete .export-spinner::before { content: "✓"; font-size: 17px; font-weight: 700; }
+.export-status strong { display: block; color: #203955; font-size: 14px; }
+.export-status span { display: block; margin-top: 3px; color: #718197; font-size: 11px; }
+.export-meta { margin-top: 16px; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.export-meta-item { min-height: 58px; padding: 10px 12px; border-radius: 9px; background: #f8fafc; box-shadow: inset 0 0 0 1px #e3eaf2; }
+.export-meta-item span { display: block; color: #8491a2; font-size: 10px; }
+.export-meta-item b { display: block; margin-top: 5px; color: #33485f; font-size: 12px; font-weight: 600; }
+.export-log { margin-top: 18px; }
+.export-log h4 { margin: 0 0 8px; color: #29425f; font-size: 12px; }
+.export-log-row { min-height: 36px; display: grid; grid-template-columns: 142px 90px minmax(0,1fr); align-items: center; gap: 10px; border-bottom: 1px solid #edf1f5; color: #64758a; font-size: 10px; }
+.export-log-row b { color: #315172; font-weight: 600; }
+.export-dialog .data-dialog-foot { justify-content: flex-end; }
+@keyframes export-spin { to { transform: rotate(360deg); } }
+body.dialog-open { overflow: hidden; }
+
+@media (max-height: 760px) {
+  .data-dialog-layer { padding: 20px; }
+  .data-dialog { height: calc(100vh - 40px); }
+  .data-dialog-head { min-height: 58px; }
+  .data-dialog-foot { min-height: 56px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .data-dialog-layer, .data-dialog, .export-spinner { transition: none; animation-duration: .001ms !important; }
+}
