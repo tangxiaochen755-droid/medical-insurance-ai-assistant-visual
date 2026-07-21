@@ -238,8 +238,18 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
     }
     html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    body { background: #f6f9fd url("assets/images/background-diffuse.jpg") center / cover no-repeat fixed; }
+    body {
+      background:
+        radial-gradient(circle at 50% 40%, rgba(255,255,255,.96) 0, rgba(248,250,252,.82) 30%, rgba(235,240,245,.38) 60%, transparent 78%),
+        linear-gradient(135deg, #edf1f5 0%, #f7f9fb 48%, #e8edf3 100%);
+    }
     .main, .chat-scroll { background: transparent; }
+    .chat-shell {
+      background-image:
+        linear-gradient(rgba(71,91,116,.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(71,91,116,.022) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
     .topbar { height: 64px; padding: 0 30px; background: rgba(250,252,255,.9); border-color: rgba(164,185,211,.38); }
     .title-wrap h1 { font-size: 16px; line-height: 24px; font-weight: 650; letter-spacing: -.015em; }
     .brand-image { width: 34px; height: 34px; object-fit: contain; outline: 1px solid rgba(0,0,0,.1); outline-offset: -1px; border-radius: 9px; }
@@ -265,11 +275,79 @@
 
     body.welcome-mode .chat-shell { position: relative; }
     body.welcome-mode .chat-scroll { overflow: hidden; -webkit-backdrop-filter: blur(0) saturate(1); backdrop-filter: blur(0) saturate(1); }
-    body.welcome-mode .conversation { height: 100%; padding: clamp(62px, 8vh, 92px) 0 28px; display: flex; flex-direction: column; justify-content: flex-start; }
+    body.welcome-mode .conversation { height: 100%; padding: clamp(28px, 4vh, 46px) 0 28px; display: flex; flex-direction: column; justify-content: flex-start; }
     body.welcome-mode .message { display: block; margin: 0; }
     body.welcome-mode .message > .assistant-avatar, body.welcome-mode .speaker { display: none; }
     body.welcome-mode .composer-wrap { display: none; }
     body.welcome-mode .welcome { text-align: center; }
+    body:not(.welcome-mode) .hero-agent-stage { display: none; }
+    .hero-agent-stage {
+      position: relative;
+      width: 136px;
+      height: 126px;
+      margin: 0 auto 10px;
+      display: grid;
+      place-items: center;
+    }
+    .hero-agent-figure {
+      position: relative;
+      z-index: 3;
+      width: 112px;
+      height: 112px;
+      animation: hero-agent-float 5s cubic-bezier(.45,.05,.55,.95) infinite;
+      will-change: transform;
+    }
+    .hero-agent-image { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 13px 16px rgba(40,76,126,.18)); }
+    .hero-agent-halo {
+      position: absolute;
+      z-index: 1;
+      left: 50%;
+      bottom: 3px;
+      width: 76px;
+      height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse,rgba(43,105,194,.3) 0%,rgba(43,105,194,.12) 48%,rgba(43,105,194,0) 76%);
+      filter: blur(5px);
+      transform: translateX(-50%);
+      animation: hero-agent-halo 5s cubic-bezier(.45,.05,.55,.95) infinite;
+    }
+    .hero-agent-orbit {
+      position: absolute;
+      z-index: 0;
+      left: 50%;
+      top: 50%;
+      width: 126px;
+      height: 54px;
+      border: 1px solid rgba(45,101,177,.16);
+      border-radius: 50%;
+      transform: translate(-50%,-50%) rotate(-10deg);
+      animation: hero-agent-orbit 8s linear infinite;
+    }
+    .hero-blink-eye {
+      position: absolute;
+      z-index: 4;
+      top: 43px;
+      width: 14px;
+      height: 14px;
+      overflow: hidden;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero-blink-eye.left { left: 51px; }
+    .hero-blink-eye.right { left: 81px; }
+    .hero-blink-eye::before,
+    .hero-blink-eye::after {
+      content: "";
+      position: absolute;
+      left: -2px;
+      width: 18px;
+      height: 9px;
+      background: #09235a;
+      box-shadow: 0 0 3px rgba(4,20,59,.7);
+      will-change: transform;
+    }
+    .hero-blink-eye::before { top: 0; border-radius: 10px 10px 4px 4px; transform: translateY(-9px); animation: hero-blink-top 5.8s ease-in-out infinite; }
+    .hero-blink-eye::after { bottom: 0; border-radius: 4px 4px 10px 10px; transform: translateY(9px); animation: hero-blink-bottom 5.8s ease-in-out infinite; }
     body.welcome-mode .welcome .welcome-kicker { margin-bottom: 12px; color: #5d78a0; font-size: 13px; line-height: 20px; font-weight: 500; letter-spacing: .04em; }
     body.welcome-mode .welcome h2 { margin: 0; color: #101a2c; font-size: 32px; line-height: 40px; font-weight: 680; letter-spacing: -.025em; }
     body.welcome-mode .bubble-intro { max-width: none; margin-top: 14px; color: #607089; font-size: 14px; line-height: 22px; letter-spacing: .01em; }
@@ -300,6 +378,26 @@
     .status-inline { display: flex; align-items: center; gap: 20px; }
     .status-online { display: inline-flex; align-items: center; gap: 7px; }
     .status-online::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #35bd91; box-shadow: 0 0 0 3px rgba(53,189,145,.11); }
+    @keyframes hero-agent-float {
+      0%,100% { transform: translate3d(0,-2px,0) rotate(-.6deg); }
+      50% { transform: translate3d(0,-10px,0) rotate(.6deg); }
+    }
+    @keyframes hero-agent-halo {
+      0%,100% { opacity: .58; transform: translateX(-50%) scale(.9); }
+      50% { opacity: .9; transform: translateX(-50%) scale(1.08); }
+    }
+    @keyframes hero-agent-orbit {
+      from { transform: translate(-50%,-50%) rotate(-10deg); }
+      to { transform: translate(-50%,-50%) rotate(350deg); }
+    }
+    @keyframes hero-blink-top {
+      0%,84%,88%,91%,95%,100% { transform: translateY(-9px); }
+      86%,93% { transform: translateY(0); }
+    }
+    @keyframes hero-blink-bottom {
+      0%,84%,88%,91%,95%,100% { transform: translateY(9px); }
+      86%,93% { transform: translateY(0); }
+    }
     .composer-wrap {
       position: relative;
       background: linear-gradient(180deg, rgba(244,248,254,0) 0%, rgba(244,248,254,.34) 24%, rgba(244,248,254,.58) 100%);
@@ -438,6 +536,29 @@
       .capability-row { grid-template-columns: repeat(2,1fr); }
       .result-columns, .result-row { grid-template-columns: 170px 100px minmax(0,1fr); }
     }
+    @media (max-height: 760px) {
+      body.welcome-mode .conversation { padding-top: 12px; padding-bottom: 12px; }
+      .hero-agent-stage { width: 104px; height: 80px; margin-bottom: 4px; }
+      .hero-agent-figure { width: 82px; height: 82px; }
+      .hero-agent-orbit { width: 94px; height: 40px; }
+      .hero-agent-halo { bottom: -3px; width: 58px; }
+      .hero-blink-eye { top: 31px; width: 11px; height: 11px; }
+      .hero-blink-eye.left { left: 37px; }
+      .hero-blink-eye.right { left: 59px; }
+      .hero-blink-eye::before, .hero-blink-eye::after { left: -1px; width: 13px; height: 7px; }
+      .hero-blink-eye::before { transform: translateY(-7px); }
+      .hero-blink-eye::after { transform: translateY(7px); }
+      body.welcome-mode .welcome .welcome-kicker { margin-bottom: 6px; }
+      body.welcome-mode .bubble-intro { margin-top: 8px; }
+      .hero-input { margin-top: 18px; }
+      .quick-label { margin: 14px 0 8px; }
+      .capability-row { row-gap: 16px; }
+      .prompt-card { min-height: 94px; padding-top: 12px; padding-bottom: 11px; }
+      .system-note.welcome-status { margin-top: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-agent-figure, .hero-agent-halo, .hero-agent-orbit, .hero-blink-eye::before, .hero-blink-eye::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
+    }
   </style>
 </head>
 <body>
@@ -477,7 +598,7 @@
     const conversation=document.querySelector('#conversation'), chatScroll=document.querySelector('#chatScroll');
     const escapeHtml=s=>s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
     function toast(t){const el=document.querySelector('#toast');el.textContent=t;el.classList.add('show');clearTimeout(window.__t);window.__t=setTimeout(()=>el.classList.remove('show'),1700)}
-    function scrollEnd(){requestAnimationFrame(()=>chatScroll.scrollTo({top:chatScroll.scrollHeight,behavior:'smooth'}))}
+    function scrollEnd(){requestAnimationFrame(()=>document.body.classList.contains('welcome-mode')?chatScroll.scrollTo({top:0,behavior:'auto'}):chatScroll.scrollTo({top:chatScroll.scrollHeight,behavior:'smooth'}))}
     function userMessage(text){document.body.classList.remove('welcome-mode');const status=conversation.querySelector('.welcome-status');if(status)status.remove();conversation.insertAdjacentHTML('beforeend',`<div class="message user"><div class="bubble-wrap"><div class="bubble">${escapeHtml(text)}</div></div><div class="user-avatar" aria-label="默认用户头像"></div></div>`);scrollEnd()}
     function assistantMessage(html){conversation.insertAdjacentHTML('beforeend',`<div class="message"><div class="assistant-avatar">AI</div><div class="bubble-wrap"><div class="speaker">智能助手</div><div class="bubble">${html}</div></div></div>`);scrollEnd();return conversation.lastElementChild}
     function reset(){state={selected:new Set([2,5,6]),plan:'compound',singleRisk:null,aidTypes:['特困人员','低保对象','低保边缘家庭成员','刚性支出困难家庭大病患者','本地户籍临时救助对象中的大病患者'],drugCategories:['他克莫司属于钙调磷酸酶抑制剂'],clinicalConditions:['血液透析 + 尿毒清','血液透析 + 海昆肾喜胶囊']};document.body.classList.add('welcome-mode');conversation.innerHTML=`<div class="message"><div class="assistant-avatar">AI</div><div class="bubble-wrap"><div class="speaker">智能助手</div><div class="bubble welcome"><div class="welcome-kicker">您好，我是</div><h2>医保药品倒卖线索发现助手</h2><p class="bubble-intro">输入风险名称或选择下方能力，快速筛查模拟目标人群</p><div class="hero-input"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input id="heroPrompt" autocomplete="off" placeholder="输入单一风险名称、复合风险、核心风险或规则问题"><button class="hero-send" id="heroSend" aria-label="发送问题"><svg viewBox="0 0 24 24"><path d="m5 12 14-7-4 14-3-6-7-1zM12 13l7-8"/></svg></button></div><div class="quick-label">快捷能力</div><div class="capability-row"><button class="prompt-card" data-action="rules"><span class="card-copy"><span class="card-kicker">01 · 风险识别</span><strong>风险特征</strong><span class="card-desc">查看 7 种单一风险，点击后直接筛查</span><span class="card-action">查看特征</span></span><img class="entry-icon" src="assets/images/icon-risk.png" alt=""></button><button class="prompt-card" data-action="config"><span class="card-copy"><span class="card-kicker">02 · 规则维护</span><strong>调整规则参数</strong><span class="card-desc">维护类型、类目与规则参数</span><span class="card-action">进入配置</span></span><img class="entry-icon" src="assets/images/icon-config.png" alt=""></button><button class="prompt-card" data-action="quick"><span class="card-copy"><span class="card-kicker">03 · 组合研判</span><strong>组合风险筛查</strong><span class="card-desc">快速筛查复合风险与核心风险</span><span class="card-action">开始筛查</span></span><img class="entry-icon" src="assets/images/icon-composite.png" alt=""></button><button class="prompt-card" data-action="custom"><span class="card-copy"><span class="card-kicker">04 · 自定义分析</span><strong>自定义检索</strong><span class="card-desc">自由勾选特征并调整参数</span><span class="card-action">设置条件</span></span><img class="entry-icon" src="assets/images/icon-custom.png" alt=""></button></div></div></div></div><div class="system-note welcome-status"><span>仅用于风险筛查模拟与辅助分析，不涉及真实医保数据。</span><span class="status-inline"><span>规则版本 V0.2</span><span class="status-online">服务正常</span></span></div>`;bindActions();scrollEnd()}
@@ -518,6 +639,17 @@
       const intro = currentMessage && currentMessage.querySelector('.bubble > p');
       if (intro) intro.textContent = '可以。你可以维护救助对象类型、监管药品类目，并调整规则1–5的参数。';
     };
+    function enhanceWelcomeAgent() {
+      const welcome = conversation.querySelector('.bubble.welcome');
+      if (!welcome || welcome.querySelector('.hero-agent-stage')) return;
+      welcome.insertAdjacentHTML('afterbegin', '<div class="hero-agent-stage" aria-hidden="true"><span class="hero-agent-orbit"></span><span class="hero-agent-figure"><img class="hero-agent-image" src="assets/images/avatar-assistant-police.png" alt=""><span class="hero-blink-eye left"></span><span class="hero-blink-eye right"></span></span><span class="hero-agent-halo"></span></div>');
+    }
+    const resetWithoutHeroAgent = reset;
+    reset = function () {
+      resetWithoutHeroAgent();
+      enhanceWelcomeAgent();
+    };
+    enhanceWelcomeAgent();
   </script>
 </body>
 </html>
