@@ -94,24 +94,34 @@
             <tbody id="allDataRows"></tbody>
           </table>
         </div>
-        <footer class="data-dialog-foot">
+        <footer class="data-dialog-foot list-dialog-foot">
           <span class="page-summary" id="pageRange"></span>
-          <div class="pagination">
-            <select class="page-size" aria-label="每页条数" disabled><option>50 条/页</option></select>
-            <button class="btn" id="pagePrevious">上一页</button>
-            <span class="page-index" id="pageIndex"></span>
-            <button class="btn" id="pageNext">下一页</button>
+          <div class="list-foot-controls">
+            <div class="pagination">
+              <select class="page-size" aria-label="每页条数" disabled><option>50 条/页</option></select>
+              <button class="btn" id="pagePrevious">上一页</button>
+              <span class="page-index" id="pageIndex"></span>
+              <button class="btn" id="pageNext">下一页</button>
+            </div>
+            <div class="list-export-actions">
+              <button class="btn" id="dialogExportCurrent">${svgDownload}导出当前页</button>
+              <button class="btn primary" id="dialogExportAll">${svgDownload}导出全部结果</button>
+            </div>
           </div>
         </footer>
       </section>`);
     layer.querySelector('#pagePrevious').onclick = () => { if (listState.page > 1) { listState.page--; renderListRows(); } };
     layer.querySelector('#pageNext').onclick = () => { const pages = Math.ceil(listState.total / PAGE_SIZE); if (listState.page < pages) { listState.page++; renderListRows(); } };
+    layer.querySelector('#dialogExportCurrent').onclick = exportCurrentPage;
+    layer.querySelector('#dialogExportAll').onclick = openExportTask;
     renderListRows();
   }
 
   function exportCurrentPage() {
     if (!resultContext) return;
-    toast(`已模拟导出当前页 XLSX（第1页，共${Math.min(PAGE_SIZE, resultContext.count)}条）`);
+    const start = (listState.page - 1) * PAGE_SIZE;
+    const pageCount = Math.min(PAGE_SIZE, Math.max(0, resultContext.count - start));
+    toast(`已模拟导出当前页 XLSX（第${listState.page}页，共${pageCount}条）`);
   }
 
   function openExportTask() {
@@ -159,9 +169,8 @@
     const displayPeople = mode === 'single' ? people.filter(person => person[2].split(',').includes(String(state.singleRisk))) : mode === 'quick' && state.plan === 'core' ? people.filter(person => coreIds.every(id => person[2].split(',').includes(id))) : people;
     const modeName = mode === 'single' ? '单一风险筛查' : mode === 'quick' ? '组合风险筛查' : '自定义模式';
     resultContext = { mode, labels, count, modeName };
-    assistantMessage(`<p>已完成模拟检索。当前条件共匹配到 <strong>${count.toLocaleString()}</strong> 名模拟人员，页面展示部分结果，可查看全部名单或导出表格。</p><div class="reply-card"><div class="reply-card-head"><strong>模拟目标人群</strong><span>${modeName} · 仅供演示</span></div><div class="reply-card-body"><div class="condition-box"><b>本次检索条件</b><div class="condition-tags">${tagHtml(labels)}</div></div><div class="result-tools"><div class="result-count"><b>${count.toLocaleString()}</b><span>名模拟人员</span></div><div class="result-tools-actions"><button class="btn ghost-primary" id="viewAllResults">${svgList}查看全部名单</button><button class="btn" id="exportCurrentPage">${svgDownload}导出当前页</button><button class="btn primary" id="exportAllResults">${svgDownload}导出全部结果</button></div></div><div class="result-list"><div class="result-columns"><span>人员编号</span><span>符合特征数</span><span>符合的人员特征</span></div>${displayPeople.map(person => `<div class="result-row"><strong class="person-code">${person[1]}</strong><span class="hit">${person[3]} 条</span><div class="condition-tags">${person[2].split(',').map(id => `<span class="tag">${features.find(feature => feature.id === Number(id)).name}</span>`).join('')}</div></div>`).join('')}</div><div class="notice">上述人员编号和结果均为虚构数据，不构成违法犯罪定性依据。</div><div class="action-row"><button class="btn" id="changeCondition">修改检索条件</button><button class="btn primary" id="searchAgain">再次检索</button></div></div></div>`);
+    assistantMessage(`<p>已完成模拟检索。当前条件共匹配到 <strong>${count.toLocaleString()}</strong> 名模拟人员，页面展示部分结果，可查看全部名单或导出完整表格。</p><div class="reply-card"><div class="reply-card-head"><strong>模拟目标人群</strong><span>${modeName} · 仅供演示</span></div><div class="reply-card-body"><div class="condition-box"><b>本次检索条件</b><div class="condition-tags">${tagHtml(labels)}</div></div><div class="result-tools"><div class="result-count"><b>${count.toLocaleString()}</b><span>名模拟人员</span></div><div class="result-tools-actions"><button class="btn ghost-primary" id="viewAllResults">${svgList}查看全部名单</button><button class="btn primary" id="exportAllResults">${svgDownload}导出全部结果</button></div></div><div class="result-list"><div class="result-columns"><span>人员编号</span><span>符合特征数</span><span>符合的人员特征</span></div>${displayPeople.map(person => `<div class="result-row"><strong class="person-code">${person[1]}</strong><span class="hit">${person[3]} 条</span><div class="condition-tags">${person[2].split(',').map(id => `<span class="tag">${features.find(feature => feature.id === Number(id)).name}</span>`).join('')}</div></div>`).join('')}</div><div class="notice">上述人员编号和结果均为虚构数据，不构成违法犯罪定性依据。</div><div class="action-row"><button class="btn" id="changeCondition">修改检索条件</button><button class="btn primary" id="searchAgain">再次检索</button></div></div></div>`);
     document.querySelector('#viewAllResults').onclick = openAllList;
-    document.querySelector('#exportCurrentPage').onclick = exportCurrentPage;
     document.querySelector('#exportAllResults').onclick = openExportTask;
     document.querySelector('#changeCondition').onclick = () => mode === 'single' ? showRules(null, false) : mode === 'quick' ? showQuick(false) : showCustom(false);
     document.querySelector('#searchAgain').onclick = () => mode === 'single' ? runSingleRisk(state.singleRisk) : runSearch(mode);

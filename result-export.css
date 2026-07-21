@@ -47,6 +47,9 @@
 .page-summary { color: #6f7e92; font-size: 11px; }
 .pagination { display: flex; align-items: center; gap: 8px; }
 .pagination .btn { min-width: 72px; }
+.list-foot-controls { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+.list-export-actions { display: flex; align-items: center; gap: 8px; padding-left: 16px; border-left: 1px solid #dce5ef; }
+.list-export-actions .btn { white-space: nowrap; }
 .page-index { min-width: 96px; text-align: center; color: #3c5069; font-size: 11px; font-variant-numeric: tabular-nums; }
 .page-size { height: 40px; padding: 0 28px 0 12px; border: 1px solid #d3dfec; border-radius: 8px; background: #fff; color: #50637a; font-size: 11px; }
 
@@ -75,6 +78,12 @@ body.dialog-open { overflow: hidden; }
   .data-dialog { height: calc(100vh - 40px); }
   .data-dialog-head { min-height: 58px; }
   .data-dialog-foot { min-height: 56px; }
+}
+
+@media (max-width: 1100px) {
+  .list-dialog-foot { align-items: flex-start; }
+  .list-foot-controls { flex-wrap: wrap; }
+  .list-export-actions { padding-left: 0; border-left: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
