@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>医保药品倒卖线索发现 AI 智能助手</title>
+  <style>
+    :root {
+      --bg: #f4f5f6;
+      --surface: #fff;
+      --surface-2: #f8f8f7;
+      --surface-3: #eeefef;
+      --line: #dadcdd;
+      --line-strong: #bfc3c5;
+      --ink: #222526;
+      --muted: #686e70;
+      --soft: #8a9092;
+      --dark: #303436;
+      --accent: #51585a;
+      --warn-bg: #f5f2ea;
+      --warn: #6e6041;
+      --ok-bg: #edf2ef;
+      --ok: #3f5d4c;
+      --radius: 10px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-width: 1120px; height: 100%; overflow: hidden; background: var(--bg); }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:active { transform: translateY(1px); }
+    button:focus { outline: none; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid #777e80; outline-offset: 2px; }
+    .hidden { display: none !important; }
+
+    .app { height: 100dvh; display: block; }
+    .sidebar { display: flex; flex-direction: column; background: #ededec; border-right: 1px solid var(--line); }
+    .brand { height: 64px; padding: 0 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); }
+    .brand-mark, .assistant-avatar { display: grid; place-items: center; color: #fff; background: var(--dark); }
+    .brand-mark { width: 32px; height: 32px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+    .brand-copy strong { display: block; font-size: 14px; font-weight: 650; }
+    .brand-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+    .new-chat { margin: 14px 12px 10px; height: 40px; padding: 0 12px; display: flex; align-items: center; gap: 9px; border: 1px solid var(--line-strong); border-radius: 8px; background: #fff; color: #35393b; font-size: 12px; font-weight: 600; }
+    .new-chat:hover { background: #f8f8f7; }
+    .new-chat svg, .sidebar-icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+    .history-label { margin: 10px 16px 6px; color: var(--soft); font-size: 10px; letter-spacing: .08em; }
+    .history { padding: 0 8px; overflow: auto; }
+    .history-item { width: 100%; min-height: 44px; margin-bottom: 3px; padding: 8px 10px; display: grid; grid-template-columns: 18px minmax(0,1fr); gap: 8px; align-items: center; text-align: left; border: 0; border-radius: 7px; background: transparent; color: #505658; }
+    .history-item:hover { background: rgba(255,255,255,.6); }
+    .history-item.active { background: #fff; color: #252829; }
+    .history-item span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
+    .history-item small { display: block; margin-top: 2px; color: var(--soft); font-size: 9px; }
+    .sidebar-footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--line); }
+    .profile { padding: 9px; display: grid; grid-template-columns: 30px 1fr auto; gap: 8px; align-items: center; background: rgba(255,255,255,.5); border-radius: 8px; }
+    .profile-mark { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: #d7d9d9; color: #454a4c; font-size: 11px; font-weight: 700; }
+    .profile strong { display: block; font-size: 11px; }
+    .profile small { color: var(--soft); font-size: 9px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #5d7567; }
+
+    .main { min-width: 0; height: 100dvh; display: grid; grid-template-rows: 64px 1fr; background: var(--surface); }
+    .topbar { padding: 0 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .title-wrap { display: flex; align-items: center; gap: 10px; }
+    .title-wrap h1 { margin: 0; font-size: 15px; font-weight: 650; }
+    .prototype-tag { padding: 3px 7px; border: 1px solid var(--line-strong); border-radius: 999px; color: #646a6c; background: #f5f5f4; font-size: 9px; }
+    .top-actions { display: flex; gap: 7px; }
+    .icon-btn { height: 32px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: #555b5d; font-size: 11px; }
+    .icon-btn:hover { background: #f7f7f6; border-color: var(--line-strong); }
+    .icon-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+
+    .chat-shell { min-height: 0; display: grid; grid-template-rows: 1fr auto; }
+    .chat-scroll { min-height: 0; overflow-y: auto; scroll-behavior: smooth; background: linear-gradient(180deg, #fff 0%, #fbfbfa 100%); }
+    .conversation { width: min(960px, calc(100% - 48px)); margin: 0 auto; padding: 26px 0 40px; }
+    .system-note { margin: 0 0 22px; padding: 9px 12px; display: flex; align-items: center; justify-content: space-between; gap: 18px; background: #f7f7f5; border: 1px solid var(--line); border-radius: 8px; color: #676d6f; font-size: 10px; }
+    .system-note strong { color: #404547; }
+
+    .message { display: grid; grid-template-columns: 34px minmax(0,1fr); gap: 12px; margin: 0 0 24px; animation: enter .22s ease both; }
+    .message.user { grid-template-columns: minmax(0,1fr) 34px; }
+    @keyframes enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .assistant-avatar { width: 34px; height: 34px; border-radius: 9px; font-size: 11px; font-weight: 700; }
+    .user-avatar { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: #dedfdf; color: #484d4f; font-size: 11px; font-weight: 700; }
+    .bubble-wrap { min-width: 0; }
+    .message.user .bubble-wrap { display: flex; justify-content: flex-end; }
+    .speaker { margin: 0 0 6px; color: #747a7c; font-size: 10px; font-weight: 600; }
+    .bubble { max-width: 100%; color: #333738; font-size: 13px; line-height: 1.75; }
+    .message.user .bubble { max-width: 72%; padding: 10px 14px; border-radius: 12px 4px 12px 12px; background: #eceeed; border: 1px solid #dfe1e0; }
+    .bubble p { margin: 0 0 9px; }
+    .bubble p:last-child { margin-bottom: 0; }
+    .bubble h2 { margin: 0 0 8px; font-size: 18px; font-weight: 650; }
+    .bubble h3 { margin: 0 0 6px; font-size: 13px; }
+    .bubble-intro { max-width: 700px; color: #555b5d; }
+
+    .welcome { padding: 4px 0 2px; }
+    .welcome h2 { font-size: 21px; letter-spacing: .01em; }
+    .capability-row { margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .prompt-card { min-height: 98px; padding: 13px; text-align: left; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: #34393a; }
+    .prompt-card:hover { border-color: #aeb3b4; background: #fafafa; }
+    .prompt-card .num { display: block; margin-bottom: 10px; color: #888e90; font-size: 9px; font-weight: 600; letter-spacing: .08em; }
+    .prompt-card strong { display: block; font-size: 12px; }
+    .prompt-card span { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+
+    .reply-card { margin-top: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; overflow: hidden; }
+    .reply-card-head { min-height: 44px; padding: 10px 13px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #f7f7f6; border-bottom: 1px solid var(--line); }
+    .reply-card-head strong { font-size: 12px; }
+    .reply-card-head span { color: var(--soft); font-size: 9px; }
+    .reply-card-body { padding: 14px; }
+    .rule-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+    .rule-item { padding: 11px; display: grid; grid-template-columns: 26px minmax(0,1fr) 16px; gap: 8px; align-items: start; text-align: left; border: 1px solid #e1e3e3; border-radius: 7px; background: #fff; color: #363a3c; }
+    .rule-item:last-child { grid-column: 1 / -1; }
+    .rule-item:hover { background: #f8f8f7; border-color: #bec2c3; }
+    .rule-id { width: 24px; height: 24px; display: grid; place-items: center; background: #eceeed; border-radius: 5px; color: #555b5d; font-size: 9px; font-weight: 600; }
+    .rule-item strong { display: block; font-size: 11px; }
+    .rule-item small { display: block; margin-top: 4px; color: #747a7c; font-size: 9px; line-height: 1.5; }
+    .chevron { color: #979c9e; font-size: 14px; }
+    .rule-detail { margin-top: 10px; padding: 13px; border-left: 3px solid #61686a; background: #f6f6f5; }
+    .rule-detail h3 { font-size: 12px; }
+    .detail-line { margin-top: 8px; display: grid; grid-template-columns: 90px 1fr; gap: 8px; color: #555b5d; font-size: 10px; line-height: 1.6; }
+    .detail-line b { color: #323637; }
+
+    .plan-list { display: grid; gap: 9px; }
+    .plan { padding: 13px; display: grid; grid-template-columns: 24px minmax(0,1fr) auto; gap: 10px; align-items: start; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .plan:hover { border-color: #aeb3b4; }
+    .plan.selected { border: 2px solid #565d5f; padding: 12px; background: #fafafa; }
+    .radio { width: 17px; height: 17px; margin-top: 2px; border: 1px solid #aeb3b4; border-radius: 50%; display: grid; place-items: center; }
+    .selected .radio::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #4c5355; }
+    .plan h3 { font-size: 12px; }
+    .plan p { margin: 3px 0 6px; color: #656b6d; font-size: 10px; line-height: 1.6; }
+    .plan-meta { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tag { padding: 3px 6px; border: 1px solid #d7dada; border-radius: 4px; background: #f2f3f3; color: #596062; font-size: 9px; }
+    .plan-count { text-align: right; white-space: nowrap; }
+    .plan-count b { display: block; font-size: 20px; font-weight: 650; }
+    .plan-count span { color: var(--soft); font-size: 9px; }
+
+    .feature-list { display: grid; gap: 7px; }
+    .feature { border: 1px solid #dfe1e1; border-radius: 7px; overflow: hidden; }
+    .feature.active { border-color: #aeb3b4; }
+    .feature-main { min-height: 46px; padding: 8px 10px; display: grid; grid-template-columns: 18px 26px minmax(0,1fr); gap: 8px; align-items: center; }
+    .check { width: 16px; height: 16px; appearance: none; border: 1px solid #aeb3b4; border-radius: 3px; background: #fff; position: relative; cursor: pointer; }
+    .check:checked { background: #51585a; border-color: #51585a; }
+    .check:checked::after { content: ""; position: absolute; left: 5px; top: 2px; width: 3px; height: 7px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .feature-no { color: #7f8587; font-size: 9px; font-weight: 600; }
+    .feature-copy strong { display: block; font-size: 10px; }
+    .feature-copy span { display: block; margin-top: 2px; color: #7b8183; font-size: 9px; }
+    .params { display: none; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; padding: 10px 10px 11px 70px; border-top: 1px solid #e1e3e3; background: #f7f7f6; }
+    .feature.active .params { display: grid; }
+    .field label { display: block; margin-bottom: 4px; color: #555b5d; font-size: 9px; }
+    .field input, .field select { width: 100%; height: 30px; padding: 0 8px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; color: #333738; font-size: 10px; }
+    .field small { display: block; margin-top: 3px; color: #858b8d; font-size: 8px; }
+
+    .action-row { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .helper { color: #777d7f; font-size: 9px; }
+    .btn { height: 32px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; color: #454b4d; font-size: 10px; }
+    .btn:hover { background: #f5f5f4; }
+    .btn.primary { background: #42484a; border-color: #42484a; color: #fff; }
+    .btn.primary:hover { background: #313638; }
+    .btn:disabled { cursor: not-allowed; opacity: .45; transform: none; }
+
+    .condition-box { padding: 10px 12px; background: #f5f6f5; border: 1px solid var(--line); border-radius: 7px; }
+    .condition-box b { display: block; margin-bottom: 7px; font-size: 10px; }
+    .condition-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .notice { margin-top: 10px; padding: 8px 10px; border-left: 3px solid #85744f; background: var(--warn-bg); color: var(--warn); font-size: 9px; line-height: 1.6; }
+
+    .config-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    .config-tab { height: 30px; padding: 0 11px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: #5c6264; font-size: 9px; }
+    .config-tab.active { background: #4d5456; border-color: #4d5456; color: #fff; }
+    .dict-block { margin-bottom: 12px; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+    .dict-head { min-height: 38px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; background: #f5f6f5; border-bottom: 1px solid var(--line); }
+    .dict-head strong { font-size: 10px; }
+    .dict-head span { color: var(--soft); font-size: 8px; }
+    .dict-list { padding: 4px 10px; }
+    .dict-row { min-height: 38px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; border-bottom: 1px solid #e7e9e9; }
+    .dict-row:last-child { border-bottom: 0; }
+    .dict-name { min-width: 0; border: 0; background: transparent; color: #373b3d; font-size: 10px; }
+    .dict-actions { display: flex; gap: 4px; }
+    .text-btn { padding: 3px 5px; border: 0; background: transparent; color: #686e70; font-size: 8px; }
+    .text-btn.danger { color: #815757; }
+    .add-row { padding: 8px 10px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 7px; border-top: 1px solid var(--line); background: #fafafa; }
+    .add-row input { height: 29px; padding: 0 8px; border: 1px solid var(--line-strong); border-radius: 5px; font-size: 9px; }
+    .rule-param-list { display: grid; gap: 8px; }
+    .rule-param { padding: 11px; border: 1px solid var(--line); border-radius: 7px; }
+    .rule-param-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+    .rule-param-head strong { font-size: 10px; }
+    .rule-param-head span { color: #777d7f; font-size: 8px; }
+    .rule-param-fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+
+    .loading { padding: 18px 0; display: flex; align-items: center; gap: 10px; color: #6f7577; font-size: 10px; }
+    .typing { display: flex; gap: 4px; }
+    .typing i { width: 5px; height: 5px; border-radius: 50%; background: #71787a; animation: blink 1s infinite; }
+    .typing i:nth-child(2) { animation-delay: .15s; }
+    .typing i:nth-child(3) { animation-delay: .3s; }
+    @keyframes blink { 0%,70%,100% { opacity: .25; transform: translateY(0); } 35% { opacity: 1; transform: translateY(-2px); } }
+
+    .result-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .result-count b { font-size: 24px; font-weight: 650; }
+    .result-count span { margin-left: 5px; color: #6e7476; font-size: 9px; }
+    .result-list { border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+    .result-columns, .result-row { display: grid; grid-template-columns: 190px 110px minmax(0,1fr); gap: 12px; align-items: center; }
+    .result-columns { min-height: 34px; padding: 0 12px; background: #f4f5f4; border-bottom: 1px solid var(--line); color: #747a7c; font-size: 9px; font-weight: 600; }
+    .result-row { min-height: 56px; padding: 9px 12px; border-bottom: 1px solid #e4e6e6; }
+    .result-row:last-child { border-bottom: 0; }
+    .result-row:hover { background: #fafafa; }
+    .person-code { color: #353a3b; font-size: 10px; font-weight: 650; }
+    .hit { font-size: 11px; font-weight: 650; }
+    .result-explain { color: #606668; font-size: 9px; line-height: 1.5; }
+
+    .composer-wrap { padding: 10px 22px 16px; background: linear-gradient(180deg, rgba(255,255,255,0), #fff 18%); }
+    .composer { width: min(960px, calc(100% - 48px)); margin: 0 auto; }
+    .suggestions { margin-bottom: 7px; display: flex; gap: 6px; overflow: hidden; }
+    .suggestion { height: 28px; padding: 0 10px; white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: #5b6163; font-size: 9px; }
+    .suggestion:hover { border-color: #adb2b3; background: #f8f8f7; }
+    .input-box { min-height: 56px; padding: 7px 8px 7px 14px; display: grid; grid-template-columns: minmax(0,1fr) 40px; gap: 8px; align-items: end; border: 1px solid var(--line-strong); border-radius: 13px; background: #fff; box-shadow: 0 8px 26px rgba(42,46,47,.08); }
+    textarea { min-height: 38px; max-height: 90px; padding: 8px 0; resize: none; border: 0; outline: none; background: transparent; color: #303435; font-size: 12px; line-height: 1.55; }
+    textarea::placeholder { color: #9ca1a2; }
+    .send { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 9px; background: #3f4547; color: #fff; }
+    .send:hover { background: #303537; }
+    .send svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    .composer-foot { margin-top: 6px; display: flex; align-items: center; justify-content: space-between; color: #94999b; font-size: 8px; }
+    .toast { position: fixed; right: 22px; top: 76px; min-width: 220px; padding: 10px 12px; border-radius: 7px; background: #33383a; color: #fff; font-size: 10px; opacity: 0; transform: translateY(-6px); pointer-events: none; transition: .2s; z-index: 20; }
+    .toast.show { opacity: 1; transform: none; }
+
+    /* Visual V1 — precision government AI theme */
+    :root {
+      --bg: #f4f8fe;
+      --surface: #fbfdff;
+      --surface-2: #f5f8fc;
+      --surface-3: #eaf2fc;
+      --line: #d9e4f1;
+      --line-strong: #b9cce3;
+      --ink: #152033;
+      --muted: #637188;
+      --soft: #8b99ad;
+      --dark: #1f6fe5;
+      --accent: #2878ec;
+      --radius: 12px;
+      --shadow-surface: 0 0 0 1px rgba(21,70,128,.06), 0 2px 5px rgba(34,86,148,.045), 0 14px 36px rgba(41,92,151,.06);
+      --shadow-hover: 0 0 0 1px rgba(39,119,236,.2), 0 5px 12px rgba(34,86,148,.08), 0 18px 44px rgba(41,92,151,.09);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body { background: #f4f8fe url("assets/images/background.jpg") center / cover no-repeat fixed; }
+    .main, .chat-scroll { background: transparent; }
+    .topbar { height: 64px; padding: 0 30px; background: rgba(250,252,255,.9); border-color: rgba(164,185,211,.38); }
+    .title-wrap h1 { font-size: 16px; line-height: 24px; font-weight: 650; letter-spacing: -.015em; }
+    .brand-image { width: 34px; height: 34px; object-fit: contain; outline: 1px solid rgba(0,0,0,.1); outline-offset: -1px; border-radius: 9px; }
+    .prototype-tag { border-color: #ccd9e8; color: #617089; background: #f6f9fd; font-size: 10px; letter-spacing: .02em; }
+    .icon-btn { min-height: 40px; padding: 0 14px; border: 0; border-radius: 9px; background: rgba(251,253,255,.88); color: #526178; box-shadow: 0 0 0 1px rgba(29,64,105,.12), 0 2px 5px rgba(31,75,127,.05); font-size: 12px; letter-spacing: .01em; transition-property: transform, background-color, box-shadow, color; transition-duration: 180ms; transition-timing-function: cubic-bezier(.2,0,0,1); }
+    .icon-btn:hover { background: #fff; color: #1f66ca; box-shadow: 0 0 0 1px rgba(39,119,236,.2), 0 5px 12px rgba(35,89,153,.08); }
+    button:active { transform: scale(.96); }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid #347ff0; outline-offset: 3px; }
+    .conversation, .composer { width: min(1040px, calc(100% - 64px)); }
+    .conversation { padding-top: 30px; }
+    .bubble { color: #26344a; font-size: 14px; line-height: 1.72; letter-spacing: .005em; }
+    .bubble h2 { color: #101a2c; font-size: 24px; line-height: 32px; letter-spacing: -.02em; text-wrap: balance; }
+    .bubble h3, .reply-card-head strong { letter-spacing: -.01em; }
+    .bubble p, .bubble-intro, .feature-copy span, .rule-item small { text-wrap: pretty; }
+    .assistant-avatar { background: #2878ec; box-shadow: 0 7px 18px rgba(31,105,216,.18); }
+    .reply-card, .plan, .feature, .rule-item, .rule-param, .dict-block { border-color: #dae4ef; box-shadow: 0 0 0 1px rgba(36,80,130,.025), 0 4px 16px rgba(37,76,121,.035); }
+    .reply-card-head { background: #f4f8fd; border-color: #dce6f1; }
+    .btn { min-height: 40px; padding: 0 15px; border: 0; border-radius: 8px; box-shadow: 0 0 0 1px rgba(28,61,101,.14), 0 2px 4px rgba(31,75,127,.04); font-size: 11px; transition-property: transform, background-color, box-shadow, color; transition-duration: 160ms; }
+    .btn.primary { background: #2674e5; box-shadow: 0 0 0 1px #1e67d2, 0 7px 16px rgba(31,105,216,.18); }
+    .btn.primary:hover { background: #1f68d2; }
+    .tag { border-color: #cfdded; background: #eff5fc; color: #49617c; border-radius: 5px; font-size: 10px; line-height: 16px; }
+    .result-count b, .person-code, .hit, .plan-count b { font-variant-numeric: tabular-nums; }
+
+    body.welcome-mode .chat-shell { position: relative; }
+    body.welcome-mode .chat-scroll { overflow: hidden; -webkit-backdrop-filter: blur(0) saturate(1); backdrop-filter: blur(0) saturate(1); }
+    body.welcome-mode .conversation { height: 100%; padding: clamp(62px, 8vh, 92px) 0 28px; display: flex; flex-direction: column; justify-content: flex-start; }
+    body.welcome-mode .message { display: block; margin: 0; }
+    body.welcome-mode .message > .assistant-avatar, body.welcome-mode .speaker { display: none; }
+    body.welcome-mode .composer-wrap { display: none; }
+    body.welcome-mode .welcome { text-align: center; }
+    body.welcome-mode .welcome .welcome-kicker { margin-bottom: 12px; color: #5d78a0; font-size: 13px; line-height: 20px; font-weight: 500; letter-spacing: .04em; }
+    body.welcome-mode .welcome h2 { margin: 0; color: #101a2c; font-size: 32px; line-height: 40px; font-weight: 680; letter-spacing: -.025em; }
+    body.welcome-mode .bubble-intro { max-width: none; margin-top: 14px; color: #607089; font-size: 14px; line-height: 22px; letter-spacing: .01em; }
+    .hero-input { height: 64px; margin-top: 32px; padding: 7px 8px 7px 20px; display: grid; grid-template-columns: 24px minmax(0,1fr) 48px; align-items: center; gap: 12px; border: 1px solid #7dacf0; border-radius: 16px; background: rgba(253,254,255,.94); box-shadow: 0 0 0 3px rgba(75,139,235,.055), 0 18px 46px rgba(53,105,167,.09); }
+    .hero-input:focus-within { border-color: #2f7dea; box-shadow: 0 0 0 3px rgba(47,125,234,.13), 0 18px 46px rgba(53,105,167,.11); }
+    .hero-input > svg { width: 22px; height: 22px; fill: none; stroke: #a0b4cd; stroke-width: 1.8; }
+    .hero-input input { min-width: 0; height: 44px; border: 0; outline: 0; background: transparent; color: #223149; font-size: 14px; line-height: 22px; letter-spacing: .005em; }
+    .hero-input input::placeholder { color: #91a0b5; }
+    .hero-send { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 11px; background: #2878ec; color: #fff; box-shadow: 0 8px 20px rgba(31,105,216,.24); transition-property: transform, background-color, box-shadow; transition-duration: 160ms; }
+    .hero-send:hover { background: #1f6ddc; box-shadow: 0 10px 24px rgba(31,105,216,.29); }
+    .hero-send svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; margin-left: 2px; }
+    .quick-label { margin: 26px 0 12px; text-align: left; color: #1e2a3d; font-size: 13px; line-height: 20px; font-weight: 650; letter-spacing: .01em; }
+    .capability-row { margin-top: 0; grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: 18px; row-gap: 28px; }
+    .prompt-card { position: relative; min-height: 108px; padding: 17px 148px 16px 20px; border: 0; border-radius: 14px; background: linear-gradient(115deg,rgba(255,255,255,.96) 0%,rgba(251,253,255,.92) 64%,rgba(235,245,255,.92) 100%); color: #202c40; box-shadow: var(--shadow-surface); overflow: visible; isolation: isolate; transition-property: transform, box-shadow, background-color; transition-duration: 180ms; transition-timing-function: cubic-bezier(.2,0,0,1); }
+    .prompt-card::after { content: ""; position: absolute; z-index: 0; right: 8px; top: 7px; width: 112px; height: 92px; border-radius: 50%; background: radial-gradient(ellipse,rgba(78,153,249,.2),rgba(78,153,249,0) 70%); pointer-events: none; }
+    .prompt-card:hover { z-index: 3; transform: translateY(-2px); background: linear-gradient(115deg,#fff 0%,#fbfdff 62%,#eaf5ff 100%); box-shadow: var(--shadow-hover); }
+    .card-copy { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+    .card-kicker { margin: 0 0 7px !important; color: #397bd6 !important; font-size: 10px !important; line-height: 14px !important; font-weight: 650; letter-spacing: .06em !important; }
+    .prompt-card strong { font-size: 15px; line-height: 22px; font-weight: 650; letter-spacing: -.01em; }
+    .prompt-card .card-desc { margin-top: 3px; color: #66758b; font-size: 11px; line-height: 17px; letter-spacing: .005em; }
+    .card-action { margin-top: 8px !important; display: inline-flex !important; align-items: center; gap: 4px; color: #3174d2 !important; font-size: 10px !important; line-height: 14px !important; font-weight: 600; }
+    .card-action::after { content: "→"; transition: transform .18s cubic-bezier(.2,0,0,1); }
+    .prompt-card:hover .card-action::after { transform: translateX(3px); }
+    .prompt-card .num { display: none; }
+    .entry-icon { position: absolute; z-index: 2; top: -28px; right: -2px; width: 150px; height: 150px; object-fit: contain; border-radius: 20px; filter: brightness(1.035) contrast(1.055) saturate(1.03); transition-property: transform, filter; transition-duration: 220ms; transition-timing-function: cubic-bezier(.2,0,0,1); }
+    .prompt-card:hover .entry-icon { transform: translateY(-5px) scale(1.045) rotate(1deg); filter: brightness(1.035) saturate(1.1) contrast(1.02); }
+    .system-note.welcome-status { order: 2; margin: 24px 0 0; min-height: 42px; padding: 0 16px; background: rgba(249,252,255,.78); border: 0; border-radius: 11px; box-shadow: 0 0 0 1px rgba(49,95,148,.1); color: #6c7b90; font-size: 10px; letter-spacing: .01em; }
+    .status-inline { display: flex; align-items: center; gap: 20px; }
+    .status-online { display: inline-flex; align-items: center; gap: 7px; }
+    .status-online::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #35bd91; box-shadow: 0 0 0 3px rgba(53,189,145,.11); }
+    .composer-wrap {
+      position: relative;
+      background: linear-gradient(180deg, rgba(244,248,254,0) 0%, rgba(244,248,254,.34) 24%, rgba(244,248,254,.58) 100%);
+      -webkit-backdrop-filter: blur(14px) saturate(1.08);
+      backdrop-filter: blur(14px) saturate(1.08);
+      box-shadow: 0 -12px 30px rgba(86,133,188,.025);
+    }
+    .input-box { border-color: rgba(138,173,216,.72); background: rgba(255,255,255,.76); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 0 0 1px rgba(31,88,155,.025), 0 12px 34px rgba(40,84,137,.09); }
+    .suggestion { background: rgba(255,255,255,.68); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+    .send { background: #2878ec; transition-property: transform, background-color, box-shadow; transition-duration: 160ms; }
+    .send:hover { background: #1f6ddc; box-shadow: 0 8px 18px rgba(31,105,216,.2); }
+
+    /* Conversation focus layer: keep the background present but visually quiet. */
+    .chat-scroll,
+    .composer-wrap {
+      transition-property: background-color, -webkit-backdrop-filter, backdrop-filter;
+      transition-duration: .36s;
+      transition-timing-function: cubic-bezier(.2,0,0,1);
+    }
+    body:not(.welcome-mode) .chat-scroll,
+    body:not(.welcome-mode) .composer-wrap {
+      background: rgba(247,250,254,.58);
+      -webkit-backdrop-filter: blur(12px) saturate(.68);
+      backdrop-filter: blur(12px) saturate(.68);
+    }
+    body:not(.welcome-mode) .composer-wrap {
+      box-shadow: none;
+    }
+    body:not(.welcome-mode) .input-box {
+      background: rgba(255,255,255,.9);
+    }
+    body:not(.welcome-mode) .suggestion {
+      background: rgba(255,255,255,.84);
+    }
+
+    /* Unified visual language for every conversational state */
+    .chat { padding-top: 30px; }
+    .message { margin-bottom: 24px; gap: 12px; }
+    .message.user { grid-template-columns: minmax(0,1fr) 38px; }
+    .message.user .bubble { padding: 11px 15px; border: 1px solid #cfe1fb; border-radius: 12px 12px 3px 12px; background: #edf5ff; color: #18385f; font-size: 13px; line-height: 1.65; box-shadow: 0 5px 16px rgba(31,105,216,.07); }
+    .speaker { margin-bottom: 8px; color: #6e7d90; font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+    .assistant-avatar { width: 38px; height: 38px; border-radius: 11px; color: transparent; background: transparent url("assets/images/avatar.png") center / cover no-repeat; outline: 1px solid rgba(0,0,0,.1); outline-offset: -1px; box-shadow: 0 7px 20px rgba(31,105,216,.18); }
+    .user-avatar { width: 38px; height: 38px; border-radius: 50%; color: transparent; background: transparent url("assets/images/user-avatar.png") center / cover no-repeat; outline: 1px solid rgba(0,0,0,.1); outline-offset: -1px; }
+    .bubble-intro { color: #3c4b5e; font-size: 13px; line-height: 1.75; }
+    .reply-card { margin-top: 14px; border: 0; border-radius: 14px; box-shadow: 0 1px 2px rgba(21,50,83,.05), 0 10px 30px rgba(37,76,121,.08); }
+    .reply-card-head { min-height: 52px; padding: 12px 16px; background: linear-gradient(180deg,#f8fbff 0%,#f3f7fc 100%); border-color: #e1e9f2; }
+    .reply-card-head strong { color: #172f4d; font-size: 14px; font-weight: 650; }
+    .reply-card-head span { color: #7b8999; font-size: 11px; line-height: 1.5; }
+    .reply-card-body { padding: 16px; }
+    .rule-grid { gap: 11px; }
+    .rule-item { min-height: 78px; padding: 13px 14px; grid-template-columns: 30px minmax(0,1fr) 48px; gap: 10px; border: 0; border-radius: 10px; background: #fff; box-shadow: inset 0 0 0 1px #e2eaf3, 0 4px 13px rgba(38,76,119,.045); transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+    .rule-item:last-child { grid-column: 1 / -1; }
+    .rule-item:hover { background: #f8fbff; border-color: transparent; box-shadow: inset 0 0 0 1px #bcd6f7, 0 8px 20px rgba(31,105,216,.09); transform: translateY(-1px); }
+    .rule-item:active { transform: scale(.99); }
+    .rule-id { width: 28px; height: 28px; border-radius: 8px; background: #eaf3ff; color: #2370d8; font-size: 11px; font-weight: 700; }
+    .rule-item strong { color: #25384f; font-size: 13px; font-weight: 650; line-height: 1.4; }
+    .rule-item small { margin-top: 5px; color: #748296; font-size: 11px; line-height: 1.65; }
+    .chevron { align-self: center; color: #2d77df; font-size: 11px; font-weight: 600; text-align: right; white-space: nowrap; }
+    .plan-list { gap: 11px; }
+    .plan { min-height: 116px; padding: 16px 18px; grid-template-columns: 20px minmax(0,1fr) 92px; gap: 14px; align-items: center; border: 0; border-radius: 12px; background: #fff; text-align: left; box-shadow: inset 0 0 0 1px #dee7f1, 0 5px 16px rgba(38,76,119,.045); transition: box-shadow .18s ease, transform .18s ease, background-color .18s ease; }
+    .plan:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px #bcd5f4, 0 9px 22px rgba(31,105,216,.09); }
+    .plan.selected { padding: 16px 18px; background: #f3f8ff; box-shadow: inset 0 0 0 2px #3d83e8, 0 9px 22px rgba(31,105,216,.1); }
+    .plan-content { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+    .plan h3 { margin: 0; color: #213955; font-size: 15px; line-height: 22px; font-weight: 650; }
+    .plan p { max-width: 720px; margin: 5px 0 10px; color: #708096; font-size: 11px; line-height: 18px; }
+    .radio { width: 18px; height: 18px; border-color: #a9bdd5; background: #fff; }
+    .selected .radio { border-color: #2878ec; box-shadow: 0 0 0 3px rgba(40,120,236,.1); }
+    .selected .radio::after { background: #2878ec; }
+    .plan-count { min-height: 70px; padding-left: 18px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; border-left: 1px solid #dbe6f2; text-align: right; }
+    .plan-count b { color: #236fd7; font-size: 24px; line-height: 30px; }
+    .plan-count span { margin-top: 2px; color: #7d8ba0; font-size: 10px; }
+    .feature-list { gap: 10px; }
+    .feature { border: 0; border-radius: 11px; box-shadow: inset 0 0 0 1px #e0e8f1, 0 4px 14px rgba(38,76,119,.04); }
+    .feature-main { min-height: 60px; padding: 12px 14px; grid-template-columns: 22px 32px minmax(0,1fr); gap: 10px; }
+    .feature-copy strong { color: #263a52; font-size: 13px; font-weight: 650; }
+    .feature-copy span { margin-top: 4px; color: #78869a; font-size: 11px; line-height: 1.6; }
+    .feature .params { padding: 14px 14px 14px 92px; gap: 12px; background: #f7faff; border-color: #e3ebf4; }
+    .feature input[type="checkbox"] { width: 17px; height: 17px; }
+    .check:checked { border-color: #2878ec; background: #2878ec; }
+    .feature-no { color: #3979ce; font-size: 10px; }
+    .field label { margin-bottom: 6px; color: #637389; font-size: 11px; font-weight: 600; }
+    .field input, .field select { height: 40px; padding: 0 11px; border-color: #d7e1ec; border-radius: 8px; background: #fff; color: #2a3d55; font-size: 12px; transition: border-color .18s ease, box-shadow .18s ease; }
+    .field input:focus, .field select:focus, .add-row input:focus { outline: none; border-color: #67a0ef; box-shadow: 0 0 0 3px rgba(40,120,236,.12); }
+    .field small { margin-top: 5px; color: #8a96a6; font-size: 10px; line-height: 1.6; }
+    .config-tabs { gap: 8px; margin-bottom: 14px; }
+    .config-tab { min-height: 40px; padding: 0 14px; border: 0; border-radius: 8px; background: #f0f4f9; color: #64758a; font-size: 11px; font-weight: 600; transition: color .18s ease, background-color .18s ease, box-shadow .18s ease; }
+    .config-tab.active { background: #e8f2ff; color: #216acb; box-shadow: inset 0 0 0 1px #c5dbf7; }
+    .dict-block, .rule-param { border: 0; border-radius: 11px; box-shadow: inset 0 0 0 1px #e0e8f1, 0 5px 16px rgba(38,76,119,.04); }
+    .dict-head { min-height: 50px; padding: 11px 14px; background: #f7faff; border-color: #e3ebf4; }
+    .dict-head strong { color: #273d57; font-size: 12px; }
+    .dict-head span { color: #8290a2; font-size: 10px; }
+    .dict-row { min-height: 48px; padding: 8px 14px; border-color: #e8edf3; }
+    .dict-name { color: #354a63; font-size: 12px; }
+    .dict-actions button { min-height: 36px; padding: 0 10px; border-radius: 7px; font-size: 10px; }
+    .add-row { padding: 11px 14px; background: #fbfcfe; }
+    .add-row input { height: 40px; padding: 0 11px; border-color: #d7e1ec; border-radius: 8px; font-size: 11px; }
+    .add-row button { min-height: 40px; border-radius: 8px; font-size: 11px; }
+    .rule-param { padding: 15px; }
+    .rule-param-head strong { color: #263b55; font-size: 13px; }
+    .rule-param-head span { color: #8090a4; font-size: 10px; }
+    .notice { padding: 11px 13px; border: 0; border-radius: 9px; background: #fff8e8; color: #80612b; font-size: 11px; line-height: 1.7; box-shadow: inset 0 0 0 1px #f2dfb4; }
+    .condition-box, .rule-detail { padding: 12px 13px; border: 0; border-radius: 9px; background: #f2f7fd; color: #53677f; font-size: 11px; line-height: 1.7; box-shadow: inset 0 0 0 1px #dce8f5; }
+    .condition-box b, .rule-detail b { color: #2c507d; font-size: 12px; }
+    .result-list { border: 0; border-radius: 10px; box-shadow: inset 0 0 0 1px #e0e8f1; }
+    .result-columns { min-height: 40px; padding: 10px 14px; background: #f5f8fc; color: #78879a; font-size: 11px; }
+    .result-row { min-height: 64px; padding: 10px 14px; border-color: #e7edf3; transition: background-color .18s ease; }
+    .result-row:hover { background: #f8fbff; }
+    .person-code { color: #2e4662; font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
+    .hit { color: #236fd7; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .tag { min-height: 24px; padding: 0 8px; border-radius: 6px; font-size: 10px; line-height: 24px; }
+    .suggestions { gap: 8px; }
+    .suggestion { min-height: 40px; padding: 0 13px; border-color: #d9e4ef; border-radius: 9px; background: #fff; color: #50637a; font-size: 11px; transition: color .18s ease, background-color .18s ease, border-color .18s ease, transform .18s ease; }
+    .suggestion:hover { color: #216acb; background: #f4f8ff; border-color: #bcd5f4; }
+    .suggestion:active { transform: scale(.97); }
+    .input-box { min-height: 62px; border-radius: 13px; box-shadow: 0 8px 28px rgba(38,76,119,.08); }
+    .input-box textarea { padding: 15px 8px 13px 15px; font-size: 13px; line-height: 1.6; }
+    .composer-foot { margin-top: 7px; color: #8a96a5; font-size: 10px; }
+    .loading { color: #6f7f92; font-size: 12px; }
+    .toast { transition-property: opacity, transform; transition-duration: .2s; transition-timing-function: ease; }
+
+    @media (max-width: 1280px) {
+      .conversation, .composer { width: min(1040px, calc(100% - 48px)); }
+      .capability-row { grid-template-columns: repeat(2,1fr); }
+      .result-columns, .result-row { grid-template-columns: 170px 100px minmax(0,1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main class="main">
+      <header class="topbar">
+        <div class="title-wrap"><img class="brand-image" src="assets/images/logo.png" alt=""><h1>医保药品倒卖线索发现 AI 智能助手</h1><span class="prototype-tag">视觉版</span></div>
+        <div class="top-actions"><button class="icon-btn" id="reset"><svg viewBox="0 0 24 24"><path d="M4 7v5h5M5.5 11A7 7 0 1 1 7 17"/></svg>复位演示</button><button class="icon-btn" id="guide"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.6 2.6 0 0 1 5 .8c0 2.2-2.5 2.2-2.5 4M12 17.5h.01"/></svg>使用说明</button></div>
+      </header>
+
+      <section class="chat-shell">
+        <div class="chat-scroll" id="chatScroll"><div class="conversation" id="conversation"></div></div>
+        <div class="composer-wrap"><div class="composer"><div class="suggestions"><button class="suggestion" data-action="rules">查看并筛查单一风险</button><button class="suggestion" data-action="config">调整规则参数</button><button class="suggestion" data-action="quick">复合风险 / 核心风险</button><button class="suggestion" data-action="custom">我要自定义筛选条件</button></div><div class="input-box"><textarea id="prompt" rows="1" placeholder="输入单一风险名称、复合风险、核心风险或规则问题…"></textarea><button class="send" id="send" aria-label="发送"><svg viewBox="0 0 24 24"><path d="m5 12 14-7-4 14-3-6-7-1zM12 13l7-8"/></svg></button></div><div class="composer-foot"><span>Enter 发送 · Shift + Enter 换行</span><span>模拟数据仅用于原型演示，不构成违法犯罪定性依据</span></div></div></div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast">操作已完成</div>
+
+  <script>
+    const features = [
+      {id:1,name:'救助对象',brief:'识别属于已配置救助对象类型的人员',rule:'救助对象类型支持添加、修改名称和删除。',range:'按救助对象类型多选，无数值阈值',fields:[{label:'救助对象类型',type:'select',options:['全部已配置类型','特困人员','低保对象','低保边缘家庭成员','刚性支出困难家庭大病患者','本地户籍临时救助对象中的大病患者']}]},
+      {id:2,name:'多机构跨院开药',brief:'识别单月内多次购药且去往多家医院的人员',rule:'规则1：单月购药次数和单月内开药去往医院数量均可调整。',range:'单月购药次数 ≥ 可调值；医院数量 ≥ 可调值',fields:[{label:'单月购药次数 ≥',value:2,min:1,max:20,unit:'次'},{label:'医院数量 ≥',value:2,min:1,max:10,unit:'家'}]},
+      {id:3,name:'涉案关联人员',brief:'识别已知嫌疑人及其社交、资金等关联对象',rule:'来源于涉案嫌疑人及其群聊、好友、资金关系等研判结果。',range:'关联层级建议 1–3 层，或按关系类型选择',fields:[{label:'关联层级',value:2,min:1,max:3,unit:'层'},{label:'关联类型',type:'select',options:['全部关系','资金关系','社交关系','案件关系']}]},
+      {id:4,name:'开药不符合临床逻辑',brief:'识别血液透析与尿毒清或海昆肾喜胶囊同时出现的人员',rule:'只要出现任一组合即命中，不计算出现次数。',range:'血液透析 + 尿毒清；血液透析 + 海昆肾喜胶囊',fields:[{label:'临床冲突组合',type:'select',options:['全部组合','血液透析 + 尿毒清','血液透析 + 海昆肾喜胶囊']}]},
+      {id:5,name:'高频次购药',brief:'识别单月开药次数和单次开药月药量达到阈值的人员',rule:'规则2：单月开药次数、单次开具的月药量均可调整。',range:'单月开药次数 ≥ 可调值；单次月药量 ≥ 可调值',fields:[{label:'单月开药次数 ≥',value:2,min:1,max:20,unit:'次'},{label:'单次月药量 ≥',value:1,min:1,max:12,unit:'月'}]},
+      {id:6,name:'开药总量异常',brief:'识别总购药量达到设置阈值的人员',rule:'规则3：总购药量 ≥ 可调值；原始数据单位不统一。',range:'不展示单位，可能对应盒、颗或袋',fields:[{label:'总购药量 ≥',value:50,min:1,max:999,unit:''}]},
+      {id:7,name:'多种类购药',brief:'识别开药种类达到设置阈值的人员',rule:'规则4：开药种类 ≥ 可调值。',range:'开药种类数量可调整',fields:[{label:'开药种类 ≥',value:8,min:1,max:50,unit:'种'}]}
+    ];
+    const people = [
+      ['周启明','JS-2026-0713','1,2,4,5,6,7',6,'跨院开药频繁，总量与种类同时异常'],
+      ['陈若川','JS-2026-0689','1,2,3,5,6,7',6,'救助身份与重点关系网均有命中'],
+      ['刘景舟','JS-2026-0642','1,2,3,4,5,6,7',7,'七项演示特征全部命中'],
+      ['宋其远','JS-2026-0598','1,2,4,5,6,7',6,'连续跨院开药且月度总量偏高'],
+      ['高文礼','JS-2026-0564','1,2,3,5,6,7',6,'重点组合与关联人员特征命中']
+    ];
+    let state = {selected:new Set([2,5,6]), plan:'compound', aidTypes:['特困人员','低保对象','低保边缘家庭成员','刚性支出困难家庭大病患者','本地户籍临时救助对象中的大病患者'], drugCategories:['他克莫司属于钙调磷酸酶抑制剂'], clinicalConditions:['血液透析 + 尿毒清','血液透析 + 海昆肾喜胶囊']};
+    const conversation=document.querySelector('#conversation'), chatScroll=document.querySelector('#chatScroll');
+    const escapeHtml=s=>s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    function toast(t){const el=document.querySelector('#toast');el.textContent=t;el.classList.add('show');clearTimeout(window.__t);window.__t=setTimeout(()=>el.classList.remove('show'),1700)}
+    function scrollEnd(){requestAnimationFrame(()=>chatScroll.scrollTo({top:chatScroll.scrollHeight,behavior:'smooth'}))}
+    function userMessage(text){document.body.classList.remove('welcome-mode');const status=conversation.querySelector('.welcome-status');if(status)status.remove();conversation.insertAdjacentHTML('beforeend',`<div class="message user"><div class="bubble-wrap"><div class="bubble">${escapeHtml(text)}</div></div><div class="user-avatar" aria-label="默认用户头像"></div></div>`);scrollEnd()}
+    function assistantMessage(html){conversation.insertAdjacentHTML('beforeend',`<div class="message"><div class="assistant-avatar">AI</div><div class="bubble-wrap"><div class="speaker">智能助手</div><div class="bubble">${html}</div></div></div>`);scrollEnd();return conversation.lastElementChild}
+    function reset(){state={selected:new Set([2,5,6]),plan:'compound',singleRisk:null,aidTypes:['特困人员','低保对象','低保边缘家庭成员','刚性支出困难家庭大病患者','本地户籍临时救助对象中的大病患者'],drugCategories:['他克莫司属于钙调磷酸酶抑制剂'],clinicalConditions:['血液透析 + 尿毒清','血液透析 + 海昆肾喜胶囊']};document.body.classList.add('welcome-mode');conversation.innerHTML=`<div class="message"><div class="assistant-avatar">AI</div><div class="bubble-wrap"><div class="speaker">智能助手</div><div class="bubble welcome"><div class="welcome-kicker">您好，我是</div><h2>医保药品倒卖线索发现助手</h2><p class="bubble-intro">输入风险名称或选择下方能力，快速筛查模拟目标人群</p><div class="hero-input"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input id="heroPrompt" autocomplete="off" placeholder="输入单一风险名称、复合风险、核心风险或规则问题"><button class="hero-send" id="heroSend" aria-label="发送问题"><svg viewBox="0 0 24 24"><path d="m5 12 14-7-4 14-3-6-7-1zM12 13l7-8"/></svg></button></div><div class="quick-label">快捷能力</div><div class="capability-row"><button class="prompt-card" data-action="rules"><span class="card-copy"><span class="card-kicker">01 · 风险识别</span><strong>风险特征</strong><span class="card-desc">查看 7 种单一风险，点击后直接筛查</span><span class="card-action">查看特征</span></span><img class="entry-icon" src="assets/images/icon-risk.png" alt=""></button><button class="prompt-card" data-action="config"><span class="card-copy"><span class="card-kicker">02 · 规则维护</span><strong>调整规则参数</strong><span class="card-desc">维护类型、类目与规则参数</span><span class="card-action">进入配置</span></span><img class="entry-icon" src="assets/images/icon-config.png" alt=""></button><button class="prompt-card" data-action="quick"><span class="card-copy"><span class="card-kicker">03 · 组合研判</span><strong>组合风险筛查</strong><span class="card-desc">快速筛查复合风险与核心风险</span><span class="card-action">开始筛查</span></span><img class="entry-icon" src="assets/images/icon-composite.png" alt=""></button><button class="prompt-card" data-action="custom"><span class="card-copy"><span class="card-kicker">04 · 自定义分析</span><strong>自定义检索</strong><span class="card-desc">自由勾选特征并调整参数</span><span class="card-action">设置条件</span></span><img class="entry-icon" src="assets/images/icon-custom.png" alt=""></button></div></div></div></div><div class="system-note welcome-status"><span>仅用于风险筛查模拟与辅助分析，不涉及真实医保数据。</span><span class="status-inline"><span>规则版本 V0.2</span><span class="status-online">服务正常</span></span></div>`;bindActions();scrollEnd()}
+    function bindActions(){document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>act(b.dataset.action));const heroInput=document.querySelector('#heroPrompt'),heroSend=document.querySelector('#heroSend');if(heroInput&&heroSend){const submitHero=()=>{const value=heroInput.value.trim();if(!value)return;document.querySelector('#prompt').value=value;submit()};heroSend.onclick=submitHero;heroInput.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submitHero()}}}}
+    function showRules(openId,withUser=true){if(withUser)userMessage('查看单一风险特征');const cards=features.map(f=>`<button class="rule-item" data-rule="${f.id}"><span class="rule-id">${String(f.id).padStart(2,'0')}</span><span><strong>${f.name}</strong><small>${f.brief}</small></span><span class="chevron">筛查 ›</span></button>`).join('');assistantMessage(`<p>以下为 7 种单一风险特征。点击任一特征后，将直接按当前已配置规则筛查对应人员，无需再次配置参数。</p><div class="reply-card"><div class="reply-card-head"><strong>风险特征</strong><span>7 项 · 点击直接筛查</span></div><div class="reply-card-body"><div class="rule-grid">${cards}</div></div></div>`);document.querySelectorAll('[data-rule]').forEach(b=>b.onclick=()=>runSingleRisk(Number(b.dataset.rule)));if(openId)runSingleRisk(openId,false)}
+    function dictHtml(items,type,title,desc){return `<div class="dict-block"><div class="dict-head"><span><strong>${title}</strong><br><span>${desc}</span></span><span>${items.length} 项</span></div><div class="dict-list">${items.map((name,i)=>`<div class="dict-row"><input class="dict-name" value="${name}" disabled data-dict-input="${type}-${i}"><span class="dict-actions"><button class="text-btn" data-edit-dict="${type}-${i}">修改名称</button><button class="text-btn danger" data-delete-dict="${type}-${i}">删除</button></span></div>`).join('')}</div><div class="add-row"><input placeholder="输入新增名称" data-add-input="${type}"><button class="btn" data-add-dict="${type}">添加</button></div></div>`}
+    function parameterHtml(){return `<div class="rule-param-list"><div class="rule-param"><div class="rule-param-head"><strong>规则1 · 跨院购药</strong><span>两项可调参数</span></div><div class="rule-param-fields"><div class="field"><label>单月购药次数 ≥</label><input type="number" value="2" min="1"><small>单位：次</small></div><div class="field"><label>医院数量 ≥</label><input type="number" value="2" min="1"><small>界面单位暂用“家”</small></div></div></div><div class="rule-param"><div class="rule-param-head"><strong>规则2 · 高频购药</strong><span>两项可调参数</span></div><div class="rule-param-fields"><div class="field"><label>单月开药次数 ≥</label><input type="number" value="2" min="1"><small>单位：次</small></div><div class="field"><label>单次月药量 ≥</label><input type="number" value="1" min="1"><small>单位：月</small></div></div></div><div class="rule-param"><div class="rule-param-head"><strong>规则3 · 总计购药</strong><span>原始数据无统一单位</span></div><div class="rule-param-fields"><div class="field"><label>总购药量 ≥</label><input type="number" value="50" min="1"><small>不显示单位</small></div></div></div><div class="rule-param"><div class="rule-param-head"><strong>规则4 · 多种类购药</strong><span>包含可编辑临床逻辑条件</span></div><div class="rule-param-fields"><div class="field"><label>开药种类 ≥</label><input type="number" value="8" min="1"><small>单位：种</small></div></div><div style="margin-top:10px;padding-top:10px;border-top:1px solid #e1e3e3"><div class="rule-param-head" style="margin-bottom:7px"><strong>开药不符合临床逻辑</strong><span>支持添加、修改名称、删除</span></div><div class="dict-block" style="margin-bottom:0"><div class="dict-list">${state.clinicalConditions.map((name,i)=>`<div class="dict-row"><input class="dict-name" value="${name}" disabled data-clinical-input="${i}"><span class="dict-actions"><button class="text-btn" data-edit-clinical="${i}">修改名称</button><button class="text-btn danger" data-delete-clinical="${i}">删除</button></span></div>`).join('')}</div><div class="add-row"><input placeholder="输入新增临床逻辑组合" data-add-clinical-input><button class="btn" data-add-clinical>添加</button></div></div></div></div><div class="rule-param"><div class="rule-param-head"><strong>规则5 · 现象出现频次</strong><span>统一作用于规则1–4</span></div><div class="rule-param-fields"><div class="field"><label>出现频次 ≥</label><input type="number" value="2" min="1"><small>单位：次</small></div></div></div><div class="notice">“开药不符合临床逻辑”已归入规则4，任一组合出现一次即命中；规则5频次不作用于该临床逻辑条件。</div><div class="action-row"><span class="helper">原型参数调整仅影响本次演示</span><button class="btn primary" data-save-rules>保存规则参数</button></div></div>`}
+    function showConfig(withUser=true){if(withUser)userMessage('我要调整规则参数');const token=`cfg-${Date.now()}`;assistantMessage(`<p>可以。你可以维护救助对象类型、监管药品类目，并调整规则1–5的参数。</p><div class="reply-card"><div class="reply-card-head"><strong>规则配置</strong><span>原型内可编辑</span></div><div class="reply-card-body"><div class="config-tabs"><button class="config-tab active" data-config-tab="dict" data-target="${token}">类型与类目</button><button class="config-tab" data-config-tab="params" data-target="${token}">规则参数</button></div><div id="${token}"></div></div></div>`);renderConfig(token,'dict')}
+    function renderConfig(token,view){const box=document.getElementById(token);if(!box)return;document.querySelectorAll(`[data-target="${token}"]`).forEach(b=>{b.classList.toggle('active',b.dataset.configTab===view);b.onclick=()=>renderConfig(token,b.dataset.configTab)});if(view==='params'){box.innerHTML=parameterHtml();const save=box.querySelector('[data-save-rules]');save.onclick=()=>toast('规则参数已保存到当前原型会话');box.querySelectorAll('[data-edit-clinical]').forEach(btn=>btn.onclick=()=>{const index=Number(btn.dataset.editClinical),input=box.querySelector(`[data-clinical-input="${index}"]`);if(input.disabled){input.disabled=false;input.focus();btn.textContent='保存'}else{const value=input.value.trim();if(!value){toast('临床逻辑组合不能为空');return}state.clinicalConditions[index]=value;input.disabled=true;btn.textContent='修改名称';toast('临床逻辑组合已修改')}});box.querySelectorAll('[data-delete-clinical]').forEach(btn=>btn.onclick=()=>{if(state.clinicalConditions.length<=1){toast('至少保留一条临床逻辑组合');return}state.clinicalConditions.splice(Number(btn.dataset.deleteClinical),1);renderConfig(token,'params');toast('临床逻辑组合已删除')});const addClinical=box.querySelector('[data-add-clinical]');addClinical.onclick=()=>{const input=box.querySelector('[data-add-clinical-input]'),value=input.value.trim();if(!value){toast('请输入新增临床逻辑组合');return}state.clinicalConditions.push(value);renderConfig(token,'params');toast('临床逻辑组合已添加')};return}box.innerHTML=dictHtml(state.aidTypes,'aid','救助对象类型','支持添加、修改名称、删除')+dictHtml(state.drugCategories,'drug','监管药品类目','当前：他克莫司属于钙调磷酸酶抑制剂');box.querySelectorAll('[data-edit-dict]').forEach(btn=>btn.onclick=()=>{const [type,index]=btn.dataset.editDict.split('-'),input=box.querySelector(`[data-dict-input="${type}-${index}"]`);if(input.disabled){input.disabled=false;input.focus();btn.textContent='保存'}else{const value=input.value.trim();if(!value){toast('名称不能为空');return}(type==='aid'?state.aidTypes:state.drugCategories)[Number(index)]=value;input.disabled=true;btn.textContent='修改名称';toast('名称已修改')}});box.querySelectorAll('[data-delete-dict]').forEach(btn=>btn.onclick=()=>{const [type,index]=btn.dataset.deleteDict.split('-'),list=type==='aid'?state.aidTypes:state.drugCategories;if(list.length<=1){toast('至少保留一项');return}list.splice(Number(index),1);renderConfig(token,'dict');toast('已删除')});box.querySelectorAll('[data-add-dict]').forEach(btn=>btn.onclick=()=>{const type=btn.dataset.addDict,input=box.querySelector(`[data-add-input="${type}"]`),value=input.value.trim();if(!value){toast('请输入新增名称');return}(type==='aid'?state.aidTypes:state.drugCategories).push(value);renderConfig(token,'dict');toast('已添加')})}
+    function showQuick(withUser=true){if(withUser)userMessage('请选择组合风险筛选方式');assistantMessage(`<p>组合风险筛查仅保留复合风险和核心风险。单一风险请在“风险特征”中选择，或直接在输入框输入风险名称。</p><div class="reply-card"><div class="reply-card-head"><strong>组合风险筛选</strong><span>2 种 · 使用当前规则参数</span></div><div class="reply-card-body"><div class="plan-list"><button class="plan selected" data-plan="compound"><span class="radio"></span><span class="plan-content"><h3>复合风险</h3><p>输出同时命中 7 种风险特征中 6 种及以上的人群。</p><span class="plan-meta"><i class="tag">命中数量 ≥ 6</i><i class="tag">模拟 13 人</i></span></span><span class="plan-count"><b>13</b><span>模拟人数</span></span></button><button class="plan" data-plan="core"><span class="radio"></span><span class="plan-content"><h3>核心风险</h3><p>筛选同时符合多机构跨院开药、开药不符合临床逻辑、高频次购药、开药总量异常、多种类购药的人群。</p><span class="plan-meta"><i class="tag">5 项核心风险</i><i class="tag">全部命中</i></span></span><span class="plan-count"><b>21</b><span>模拟人数</span></span></button></div><div class="notice">核心风险要求同时命中指定 5 项特征，不包含“救助对象”和“涉案关联人员”。单一风险选择后直接按当前规则筛查。</div><div class="action-row"><button class="btn" id="quickToFeatures">查看单一风险</button><button class="btn primary" id="runQuick">开始模拟检索</button></div></div></div>`);state.plan='compound';document.querySelectorAll('[data-plan]').forEach(p=>p.onclick=()=>{state.plan=p.dataset.plan;document.querySelectorAll('[data-plan]').forEach(x=>x.classList.toggle('selected',x===p))});document.querySelector('#runQuick').onclick=()=>runSearch('quick');document.querySelector('#quickToFeatures').onclick=()=>showRules(null,false)}
+    function fieldsHtml(f){return f.fields.map((x,i)=>x.type==='select'?`<div class="field"><label>${x.label}</label><select>${x.options.map(o=>`<option>${o}</option>`).join('')}</select><small>${f.range}</small></div>`:`<div class="field"><label>${x.label}</label><input type="number" value="${x.value}" min="${x.min}" max="${x.max}" data-param="${f.id}-${i}"><small>建议 ${x.min}–${x.max} ${x.unit}</small></div>`).join('')}
+    function showCustom(withUser=true){if(withUser)userMessage('我要自定义筛选条件');assistantMessage(`<p>请勾选希望输出的人群特征，并根据需要调整参数。多项特征暂按“全部命中”组合。</p><div class="reply-card"><div class="reply-card-head"><strong>自定义筛查条件</strong><span>至少选择 1 项特征</span></div><div class="reply-card-body"><div class="feature-list">${features.map(f=>`<div class="feature ${state.selected.has(f.id)?'active':''}" data-feature-box="${f.id}"><div class="feature-main"><input class="check" type="checkbox" data-feature="${f.id}" ${state.selected.has(f.id)?'checked':''}><span class="feature-no">${String(f.id).padStart(2,'0')}</span><span class="feature-copy"><strong>${f.name}</strong><span>${f.brief}</span></span></div><div class="params">${fieldsHtml(f)}</div></div>`).join('')}</div><div class="action-row"><span class="helper" id="selectedTip">已选择 ${state.selected.size} 项 · 全部命中（AND）</span><span><button class="btn" id="clearCustom">清空</button> <button class="btn primary" id="runCustom">开始模拟检索</button></span></div></div></div>`);document.querySelectorAll('[data-feature]').forEach(c=>c.onchange=()=>{const id=Number(c.dataset.feature);c.checked?state.selected.add(id):state.selected.delete(id);document.querySelector(`[data-feature-box="${id}"]`).classList.toggle('active',c.checked);document.querySelector('#selectedTip').textContent=`已选择 ${state.selected.size} 项 · 全部命中（AND）`;document.querySelector('#runCustom').disabled=!state.selected.size});document.querySelectorAll('[data-param]').forEach(i=>i.onchange=()=>{if(Number(i.value)<Number(i.min)||Number(i.value)>Number(i.max))toast(`当前参数超出建议范围 ${i.min}–${i.max}`)});document.querySelector('#clearCustom').onclick=()=>{state.selected.clear();document.querySelectorAll('[data-feature]').forEach(c=>{c.checked=false;c.closest('.feature').classList.remove('active')});document.querySelector('#selectedTip').textContent='尚未选择特征';document.querySelector('#runCustom').disabled=true};document.querySelector('#runCustom').disabled=!state.selected.size;document.querySelector('#runCustom').onclick=()=>state.selected.size?runSearch('custom'):toast('请至少选择一项特征')}
+    function runSingleRisk(id,withUser=true){const f=features.find(x=>x.id===id);if(!f)return;state.singleRisk=id;if(withUser)userMessage(`筛查${f.name}人员`);assistantMessage(`<div class="loading" id="loadingMessage"><span class="typing"><i></i><i></i><i></i></span>正在按“${f.name}”当前规则匹配模拟人员，无需再次配置参数…</div>`);setTimeout(()=>{const loading=document.querySelector('#loadingMessage');if(loading)loading.closest('.message').remove();showResults('single',[f.name])},650)}
+    function runSearch(mode,withUser=true){const labels=mode==='quick'?(state.plan==='compound'?['复合风险 · 命中6种及以上']:['核心风险 · 指定5项特征全部命中']):[...state.selected].sort().map(id=>features.find(f=>f.id===id).name);if(withUser)userMessage(`按当前${mode==='quick'?'组合风险':'自定义'}条件检索目标人群`);assistantMessage(`<div class="loading" id="loadingMessage"><span class="typing"><i></i><i></i><i></i></span>正在按当前条件匹配模拟人员…</div>`);setTimeout(()=>{const loading=document.querySelector('#loadingMessage');if(loading)loading.closest('.message').remove();showResults(mode,labels)},650)}
+    function showResults(mode,labels){const singleCounts={1:2050,2:2587,3:122,4:294,5:3855,6:2658,7:4611};const count=mode==='single'?singleCounts[state.singleRisk]:mode==='quick'?(state.plan==='compound'?13:21):18;const coreIds=['2','4','5','6','7'];const displayPeople=mode==='single'?people.filter(p=>p[2].split(',').includes(String(state.singleRisk))):mode==='quick'&&state.plan==='core'?people.filter(p=>coreIds.every(id=>p[2].split(',').includes(id))):people;const modeName=mode==='single'?'单一风险筛查':mode==='quick'?'组合风险筛查':'自定义模式';assistantMessage(`<p>已完成模拟检索。当前条件共匹配到 <strong>${count}</strong> 名模拟人员，以下展示部分结果。</p><div class="reply-card"><div class="reply-card-head"><strong>模拟目标人群</strong><span>${modeName} · 仅供演示</span></div><div class="reply-card-body"><div class="condition-box"><b>本次检索条件</b><div class="condition-tags">${labels.map(x=>`<span class="tag">${x}</span>`).join('')}</div></div><div class="result-head"><div class="result-count"><b>${count}</b><span>名模拟人员</span></div><button class="btn" id="emptyResult">演示空结果</button></div><div class="result-list"><div class="result-columns"><span>人员编号</span><span>符合特征数</span><span>符合的人员特征</span></div>${displayPeople.map(p=>`<div class="result-row"><strong class="person-code">${p[1]}</strong><span class="hit">${p[3]} 条</span><div class="condition-tags">${p[2].split(',').map(id=>`<span class="tag">${features.find(f=>f.id===Number(id)).name}</span>`).join('')}</div></div>`).join('')}</div><div class="notice">上述人员编号和结果均为虚构数据，不构成违法犯罪定性依据。</div><div class="action-row"><button class="btn" id="changeCondition">修改检索条件</button><button class="btn primary" id="searchAgain">再次检索</button></div></div></div>`);document.querySelector('#changeCondition').onclick=()=>mode==='single'?showRules(null,false):mode==='quick'?showQuick(false):showCustom(false);document.querySelector('#searchAgain').onclick=()=>mode==='single'?runSingleRisk(state.singleRisk):runSearch(mode);document.querySelector('#emptyResult').onclick=showEmpty}
+    function showEmpty(){assistantMessage(`<p>当前条件下未找到符合要求的模拟人员。</p><div class="reply-card"><div class="reply-card-body" style="text-align:center;padding:24px"><h3>暂无匹配结果</h3><p style="color:#747a7c;font-size:10px">建议减少特征数量或适当调整参数范围后重新检索。</p><button class="btn primary" id="emptyCustom">调整自定义条件</button></div></div>`);document.querySelector('#emptyCustom').onclick=()=>showCustom(false)}
+    function act(action){if(action==='rules')showRules();else if(action==='config')showConfig();else if(action==='quick')showQuick();else if(action==='custom')showCustom()}
+    function submit(){const input=document.querySelector('#prompt'),text=input.value.trim();if(!text)return;input.value='';const matchedFeature=features.find(f=>text.includes(f.name));if(matchedFeature){userMessage(text);setTimeout(()=>runSingleRisk(matchedFeature.id,false),120)}else if(/复合风险/.test(text)){userMessage(text);state.plan='compound';setTimeout(()=>runSearch('quick',false),120)}else if(/核心风险/.test(text)){userMessage(text);state.plan='core';setTimeout(()=>runSearch('quick',false),120)}else if(/配置|调整规则|救助对象类型|监管药品/.test(text)){userMessage(text);setTimeout(()=>showConfig(false),120)}else if(/风险筛选|组合风险|快捷/.test(text)){userMessage(text);setTimeout(()=>showQuick(false),120)}else if(/自定义|勾选/.test(text)){userMessage(text);setTimeout(()=>showCustom(false),120)}else if(/七|7|特征|规则/.test(text)){userMessage(text);const m=text.match(/[1-7]/);const id=m?Number(m[0]):null;setTimeout(()=>showRules(id,false),120)}else{userMessage(text);setTimeout(()=>assistantMessage(`<p>当前原型支持以下四类问题：</p><div class="capability-row"><button class="prompt-card" data-action="rules"><strong>风险特征</strong><span>点击单一风险直接筛查</span></button><button class="prompt-card" data-action="config"><strong>规则配置</strong><span>维护类型、类目和参数</span></button><button class="prompt-card" data-action="quick"><strong>组合风险筛查</strong><span>复合风险、核心风险</span></button><button class="prompt-card" data-action="custom"><strong>自定义检索</strong><span>配置特征参数</span></button></div>`),180);setTimeout(bindActions,200)}}
+    document.querySelector('#send').onclick=submit;document.querySelector('#prompt').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submit()}};document.querySelector('#reset').onclick=()=>{reset();toast('已恢复默认演示状态')};document.querySelector('#guide').onclick=()=>toast('可输入单一风险名称直接筛查，也可输入“复合风险”或“核心风险”');document.querySelectorAll('.suggestion').forEach(b=>b.onclick=()=>act(b.dataset.action));reset();
+  </script>
+</body>
+</html>
