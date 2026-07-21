@@ -183,6 +183,7 @@
     .rule-param-head strong { font-size: 10px; }
     .rule-param-head span { color: #777d7f; font-size: 8px; }
     .rule-param-fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+    .rule-param-fields.frequency-grid { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 10px; }
 
     .loading { padding: 18px 0; display: flex; align-items: center; gap: 10px; color: #6f7577; font-size: 10px; }
     .typing { display: flex; gap: 4px; }
@@ -497,6 +498,23 @@
     function act(action){if(action==='rules')showRules();else if(action==='config')showConfig();else if(action==='quick')showQuick();else if(action==='custom')showCustom()}
     function submit(){const input=document.querySelector('#prompt'),text=input.value.trim();if(!text)return;input.value='';const matchedFeature=features.find(f=>text.includes(f.name));if(matchedFeature){userMessage(text);setTimeout(()=>runSingleRisk(matchedFeature.id,false),120)}else if(/复合风险/.test(text)){userMessage(text);state.plan='compound';setTimeout(()=>runSearch('quick',false),120)}else if(/核心风险/.test(text)){userMessage(text);state.plan='core';setTimeout(()=>runSearch('quick',false),120)}else if(/配置|调整规则|救助对象类型|监管药品/.test(text)){userMessage(text);setTimeout(()=>showConfig(false),120)}else if(/风险筛选|组合风险|快捷/.test(text)){userMessage(text);setTimeout(()=>showQuick(false),120)}else if(/自定义|勾选/.test(text)){userMessage(text);setTimeout(()=>showCustom(false),120)}else if(/七|7|特征|规则/.test(text)){userMessage(text);const m=text.match(/[1-7]/);const id=m?Number(m[0]):null;setTimeout(()=>showRules(id,false),120)}else{userMessage(text);setTimeout(()=>assistantMessage(`<p>当前原型支持以下四类问题：</p><div class="capability-row"><button class="prompt-card" data-action="rules"><strong>风险特征</strong><span>点击单一风险直接筛查</span></button><button class="prompt-card" data-action="config"><strong>规则配置</strong><span>维护类型、类目和参数</span></button><button class="prompt-card" data-action="quick"><strong>组合风险筛查</strong><span>复合风险、核心风险</span></button><button class="prompt-card" data-action="custom"><strong>自定义检索</strong><span>配置特征参数</span></button></div>`),180);setTimeout(bindActions,200)}}
     document.querySelector('#send').onclick=submit;document.querySelector('#prompt').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submit()}};document.querySelector('#reset').onclick=()=>{reset();toast('已恢复默认演示状态')};document.querySelector('#guide').onclick=()=>toast('可输入单一风险名称直接筛查，也可输入“复合风险”或“核心风险”');document.querySelectorAll('.suggestion').forEach(b=>b.onclick=()=>act(b.dataset.action));reset();
+  </script>
+  <script>
+    const renderParameterHtmlBase = parameterHtml;
+    parameterHtml = function () {
+      const originalRule5 = `<div class="rule-param"><div class="rule-param-head"><strong>规则5 · 现象出现频次</strong><span>统一作用于规则1–4</span></div><div class="rule-param-fields"><div class="field"><label>出现频次 ≥</label><input type="number" value="2" min="1"><small>单位：次</small></div></div></div>`;
+      const rule5And6 = `<div class="rule-param"><div class="rule-param-head"><strong>规则5 · 开药不符合临床逻辑</strong><span>独立配置异常出现次数</span></div><div class="rule-param-fields"><div class="field"><label>不符合临床逻辑次数 ≥</label><input type="number" value="1" min="1" max="12"><small>建议 1–12 次</small></div></div></div><div class="rule-param"><div class="rule-param-head"><strong>规则6 · 现象出现频次</strong><span>分别配置规则1–5</span></div><div class="rule-param-fields frequency-grid"><div class="field"><label>规则1 · 跨院购药频次 ≥</label><input type="number" value="2" min="1" max="12"><small>建议 1–12 次</small></div><div class="field"><label>规则2 · 高频购药频次 ≥</label><input type="number" value="2" min="1" max="12"><small>建议 1–12 次</small></div><div class="field"><label>规则3 · 总计购药频次 ≥</label><input type="number" value="2" min="1" max="12"><small>建议 1–12 次</small></div><div class="field"><label>规则4 · 多种类购药频次 ≥</label><input type="number" value="2" min="1" max="12"><small>建议 1–12 次</small></div><div class="field"><label>规则5 · 不合逻辑频次 ≥</label><input type="number" value="1" min="1" max="12"><small>建议 1–12 次</small></div></div></div>`;
+      return renderParameterHtmlBase()
+        .replace(originalRule5, rule5And6)
+        .replace('“开药不符合临床逻辑”已归入规则4，任一组合出现一次即命中；规则5频次不作用于该临床逻辑条件。', '规则4维护不符合临床逻辑的药品组合；规则5配置不合逻辑现象的命中次数；规则6分别配置规则1–5的现象出现频次。');
+    };
+    const renderShowConfigBase = showConfig;
+    showConfig = function (withUser = true) {
+      renderShowConfigBase(withUser);
+      const currentMessage = conversation.lastElementChild;
+      const intro = currentMessage && currentMessage.querySelector('.bubble > p');
+      if (intro) intro.textContent = '可以。你可以维护救助对象类型、监管药品类目，并调整规则1–6的参数。';
+    };
   </script>
 </body>
 </html>
