@@ -503,6 +503,12 @@
     .rule-param { padding: 15px; }
     .rule-param-head strong { color: #263b55; font-size: 13px; }
     .rule-param-head span { color: #8090a4; font-size: 10px; }
+    .purchase-rule-list { display: grid; gap: 10px; }
+    .purchase-rule-item { padding: 12px; border: 1px solid #e1e9f2; border-radius: 9px; background: #f9fbfe; }
+    .purchase-rule-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .purchase-rule-title strong { color: #344a64; font-size: 12px; }
+    .purchase-rule-title span { color: #78889c; font-size: 10px; white-space: nowrap; }
+    .purchase-rule-fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
     .notice { padding: 11px 13px; border: 0; border-radius: 9px; background: #fff8e8; color: #80612b; font-size: 11px; line-height: 1.7; box-shadow: inset 0 0 0 1px #f2dfb4; }
     .condition-box, .rule-detail { padding: 12px 13px; border: 0; border-radius: 9px; background: #f2f7fd; color: #53677f; font-size: 11px; line-height: 1.7; box-shadow: inset 0 0 0 1px #dce8f5; }
     .condition-box b, .rule-detail b { color: #2c507d; font-size: 12px; }
@@ -624,12 +630,17 @@
     parameterHtml = function () {
       const clinicalRows = state.clinicalConditions.map((name,i)=>`<div class="dict-row"><input class="dict-name" value="${name}" disabled data-clinical-input="${i}"><span class="dict-actions"><button class="text-btn" data-edit-clinical="${i}">修改名称</button><button class="text-btn danger" data-delete-clinical="${i}">删除</button></span></div>`).join('');
       return `<div class="rule-param-list">
-        <div class="rule-param"><div class="rule-param-head"><strong>规则1 · 跨院购药</strong><span>两项可调参数</span></div><div class="rule-param-fields"><div class="field"><label>医院数量 ≥</label><input type="number" value="2" min="1" max="10"><small>单位：家</small></div><div class="field"><label>频率 ≥</label><input type="number" value="2" min="1" max="20"><small>单位：次</small></div></div></div>
+        <div class="rule-param"><div class="rule-param-head"><strong>规则1 · 购药量异常</strong><span>4 条独立规则</span></div><div class="purchase-rule-list">
+          <div class="purchase-rule-item"><div class="purchase-rule-title"><strong>规则1-1 · 同时命中5个以上标签</strong><span>超正常值 188%</span></div><div class="purchase-rule-fields"><div class="field"><label>月均购药量下限</label><input type="number" value="31.7" min="0" step="0.1"><small>单位：件</small></div><div class="field"><label>月均购药量上限</label><input type="number" value="38.9" min="0" step="0.1"><small>单位：件</small></div></div></div>
+          <div class="purchase-rule-item"><div class="purchase-rule-title"><strong>规则1-2 · 同时命中4个以上标签</strong><span>超正常值 253%</span></div><div class="purchase-rule-fields"><div class="field"><label>月均购药量下限</label><input type="number" value="38.9" min="0" step="0.1"><small>单位：件</small></div><div class="field"><label>月均购药量上限</label><input type="number" value="46.5" min="0" step="0.1"><small>单位：件</small></div></div></div>
+          <div class="purchase-rule-item"><div class="purchase-rule-title"><strong>规则1-3 · 同时命中3个以上标签</strong><span>超正常值 322%</span></div><div class="purchase-rule-fields"><div class="field"><label>月均购药量下限</label><input type="number" value="46.5" min="0" step="0.1"><small>单位：件</small></div><div class="field"><label>月均购药量上限</label><input type="number" value="53.3" min="0" step="0.1"><small>单位：件</small></div></div></div>
+          <div class="purchase-rule-item"><div class="purchase-rule-title"><strong>规则1-4 · 同时命中-个以上标签</strong><span>超正常值 385%</span></div><div class="purchase-rule-fields"><div class="field"><label>月均购药量 ＞</label><input type="number" value="53.3" min="0" step="0.1"><small>单位：件，无上限；标签数不配置</small></div></div></div>
+        </div></div>
         <div class="rule-param"><div class="rule-param-head"><strong>规则2 · 高频购药</strong><span>两项可调参数</span></div><div class="rule-param-fields"><div class="field"><label>单月开药次数 ≥</label><input type="number" value="2" min="1" max="20"><small>单位：次</small></div><div class="field"><label>频率 ≥</label><input type="number" value="7" min="1" max="30"><small>单位：次</small></div></div></div>
         <div class="rule-param"><div class="rule-param-head"><strong>规则3 · 总计购药</strong><span>两项可调参数</span></div><div class="rule-param-fields"><div class="field"><label>总购药量 ＞</label><input type="number" value="50" min="1" max="999"><small>单位：件</small></div><div class="field"><label>频率 ≥</label><input type="number" value="2" min="1" max="20"><small>单位：次</small></div></div></div>
         <div class="rule-param"><div class="rule-param-head"><strong>规则4 · 多种类购药</strong><span>两项可调参数</span></div><div class="rule-param-fields"><div class="field"><label>开药种类 ＞</label><input type="number" value="8" min="1" max="50"><small>单位：种</small></div><div class="field"><label>频率 ≥</label><input type="number" value="1" min="1" max="20"><small>单位：次</small></div></div></div>
         <div class="rule-param"><div class="rule-param-head"><strong>规则5 · 开药不符合临床逻辑</strong><span>次数、频率及组合可调</span></div><div class="rule-param-fields"><div class="field"><label>不合逻辑次数 ≥</label><input type="number" value="1" min="1" max="20"><small>单位：次</small></div><div class="field"><label>频率 ≥</label><input type="number" value="1" min="1" max="20"><small>单位：次</small></div></div><div style="margin-top:12px;padding-top:12px;border-top:1px solid #e1e8f0"><div class="rule-param-head" style="margin-bottom:8px"><strong>不符合临床逻辑组合</strong><span>支持添加、修改名称、删除</span></div><div class="dict-block" style="margin-bottom:0"><div class="dict-list">${clinicalRows}</div><div class="add-row"><input placeholder="输入新增临床逻辑组合" data-add-clinical-input><button class="btn" data-add-clinical>添加</button></div></div></div></div>
-        <div class="notice">规则1–5分别配置各自的业务阈值与频率；规则5中的任一临床逻辑组合达到设定次数和频率后命中。</div>
+        <div class="notice">规则1“购药量异常”包含 4 条独立判断规则；标签命中条件按原规则固定展示，不提供配置，月均购药量阈值可分别调整，超正常值比例作为规则说明展示。</div>
         <div class="action-row"><span class="helper">原型参数调整仅影响本次演示</span><button class="btn primary" data-save-rules>保存规则参数</button></div>
       </div>`;
     };
